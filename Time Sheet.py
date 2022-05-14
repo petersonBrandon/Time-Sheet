@@ -13,19 +13,6 @@ root_tk.title("Time Sheet") # Set window title
 header = customtkinter.CTkLabel(master=root_tk, text="Time Sheet", text_font=("Roboto Medium", -24))
 header.place(relx=0.5, rely=0.15, anchor=tkinter.CENTER)
 
-#! ==================== EXPERIMENTAL TIME DISPLAY ====================
-#! Current status: Partly functional
-#! Description: 
-#!     Currently works, the only issue is the time display will flash
-#!     constantly as the time is being updated.
-#! ====================================================================
-#* while(True):
-#*     now = datetime.now()
-#*     current_time = now.strftime("%I:%M:%S %p")
-#*     label = customtkinter.CTkLabel(master=root_tk, text=current_time, text_font=("Roboto Medium", -32))
-#*     label.place(relx=0.5, rely=0.3, anchor=tkinter.CENTER)
-#*     label.update()
-
 # Button global offset
 yButtonRef = 0.4
 xButtonRef = 0.8
@@ -85,5 +72,18 @@ project.place(relx=xInputRef, rely=yInputRef + 0.2, anchor=tkinter.CENTER)
 # Initials text input
 initials = customtkinter.CTkEntry(master=root_tk, placeholder_text="Initials", width=200)
 initials.place(relx=xInputRef, rely=yInputRef + 0.3, anchor=tkinter.CENTER)
+
+#! ==================== EXPERIMENTAL TIME DISPLAY ====================
+#! Current status: Partly functional
+#! Description: 
+#!     Currently works, the only issue is the time display will flash
+#!     constantly as the time is being updated.
+#! ====================================================================
+# while(True):
+#     now = datetime.now()
+#     current_time = now.strftime("%I:%M:%S %p")
+#     label = customtkinter.CTkLabel(master=root_tk, text=current_time, text_font=("Roboto Medium", -32))
+#     label.place(relx=0.5, rely=0.3, anchor=tkinter.CENTER)
+#     label.update()
 
 root_tk.mainloop()
