@@ -1,5 +1,6 @@
 import tkinter
 import json
+import shutil
 import customtkinter
 from datetime import datetime
 
@@ -12,9 +13,12 @@ root_tk.resizable(width=False, height=False) # Prevent window resizing
 root_tk.title("Time Sheet") # Set window title
 
 userDataFile = "userData.json"
+timeDataFile = "timeData.json"
 
 userData = "0"
 noData = True
+newSheet = False
+
 while(noData):
     try:
         userFile = open(userDataFile)
@@ -40,29 +44,68 @@ def setUserData():
     jsonFile.write(jsonString)
     jsonFile.close()
 
-dayTimeSheet = {
-    "clockIn": "",
-    "lunchOut": "",
-    "lunchIn": "",
-    "clockOut": ""
-}
+def getTimeSheet():
+    noData = True
+    global newSheet
+    while(noData):
+        try:
+            timeFile = open(timeDataFile)
+            timeSheet = json.load(timeFile)
+            noData = False
+            return timeSheet
+        except:
+            defaultData = { 
+                "time" : [{
+                    "date": "",
+                    "clockIn": "",
+                    "lunchOut": "",
+                    "lunchIn": "",
+                    "clockOut": ""
+                }]
+            }
+            jsonString = json.dumps(defaultData)
+            jsonFile = open(timeDataFile, "w")
+            jsonFile.write(jsonString)
+            jsonFile.close()
+            newSheet = True
+            noData = True
 
-def setUserDayTime():
-    print("test")
+timeSheet = getTimeSheet()
+dayTimeSheet = timeSheet.get("time")[len(timeSheet.get("time")) - 1].copy()
+if(dayTimeSheet.get("clockIn") == ""):
+    newSheet = True
+print(dayTimeSheet)
+
+def setUserDayTime(mode):
+    if(mode == "update"):
+        timeSheet.get("time")[len(timeSheet.get("time")) - 1] = dayTimeSheet.copy()
+    elif(mode == "add"):
+        timeSheet.get("time").append(dayTimeSheet)
+
+    jsonString = json.dumps(timeSheet)
+    jsonFile = open(timeDataFile, "w")
+    jsonFile.write(jsonString)
+    jsonFile.close()
 
 def setTimestamp(set):
+    global newSheet
     if(set == 0):
+        dayTimeSheet.update({"date": datetime.now().strftime("%m-%d-%Y")})
         dayTimeSheet.update({"clockIn": datetime.now().strftime("%I:%M %p")})
-        print(dayTimeSheet)
+        if(newSheet):
+            setUserDayTime("update")
+            newSheet = False
+        else:
+            setUserDayTime("add")
     elif(set == 1):
         dayTimeSheet.update({"lunchOut": datetime.now().strftime("%I:%M %p")})
-        print(dayTimeSheet)
+        setUserDayTime("update")
     elif(set == 2):
         dayTimeSheet.update({"lunchIn": datetime.now().strftime("%I:%M %p")})
-        print(dayTimeSheet)
+        setUserDayTime("update")
     else:
         dayTimeSheet.update({"clockOut": datetime.now().strftime("%I:%M %p")})
-        setUserDayTime()
+        setUserDayTime("update")
 
 # App Title
 header = customtkinter.CTkLabel(master=root_tk, text="Time Sheet", text_font=("Roboto Medium", -24))
@@ -74,17 +117,42 @@ xButtonRef = 0.8
 
 # Timestamp buttons and methods
 def clock_in():
+    clockIn.configure(state=tkinter.DISABLED)
     setUserData()
     setTimestamp(0)
 
 def lunch_out():
+    lunchOut.configure(state=tkinter.DISABLED)
     setTimestamp(1)
 
 def lunch_in():
+    lunchIn.configure(state=tkinter.DISABLED)
     setTimestamp(2)
 
 def clock_out():
+    clockIn.configure(state=tkinter.NORMAL)
+    lunchOut.configure(state=tkinter.NORMAL)
+    lunchIn.configure(state=tkinter.NORMAL)
     setTimestamp(3)
+
+def end_period():
+    payPeriod = timeSheet.get("time")[0].get("date") + " - " + datetime.now().strftime("%m-%d-%Y")
+    jsonFile = open(payPeriod + ".json", "w")
+    jsonFile.close()
+    shutil.copyfile(timeDataFile, payPeriod + ".json")
+    defaultData = { 
+        "time" : [{
+            "date": "",
+            "clockIn": "",
+            "lunchOut": "",
+            "lunchIn": "",
+            "clockOut": ""
+        }]
+    }
+    jsonString = json.dumps(defaultData)
+    jsonFile = open(timeDataFile, "w")
+    jsonFile.write(jsonString)
+    jsonFile.close()
 
 clockIn = customtkinter.CTkButton(master=root_tk, text="Clock In", command=clock_in)
 clockIn.place(relx=xButtonRef, rely=yButtonRef, anchor=tkinter.CENTER)
@@ -97,6 +165,9 @@ lunchIn.place(relx=xButtonRef, rely=yButtonRef + 0.2, anchor=tkinter.CENTER)
 
 clockOut = customtkinter.CTkButton(master=root_tk, text="Clock Out", command=clock_out)
 clockOut.place(relx=xButtonRef, rely=yButtonRef + 0.3, anchor=tkinter.CENTER)
+
+endPeriod = customtkinter.CTkButton(master=root_tk, text="End Pay Peroid", fg_color="#D31515", hover_color="#950F0F", command=end_period)
+endPeriod.place(relx=xButtonRef, rely=yButtonRef + 0.5, anchor=tkinter.CENTER)
 
 # Dark Mode toggle button and method
 def dark_toggle():
