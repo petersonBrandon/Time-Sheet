@@ -1,4 +1,5 @@
 import tkinter
+import json
 import customtkinter
 from datetime import datetime
 
@@ -10,6 +11,56 @@ root_tk.geometry("500x400") # Set window dimenstions
 root_tk.resizable(width=False, height=False) # Prevent window resizing
 root_tk.title("Time Sheet") # Set window title
 
+userDataFile = "userData.json"
+
+userData = "0"
+noData = True
+while(noData):
+    try:
+        userFile = open(userDataFile)
+        userData = json.load(userFile)
+        noData = False
+    except:
+        defaultData = { "name": "name", "supervisor": "supervisor", "project": "project", "initials": "initials"}
+        jsonString = json.dumps(defaultData)
+        jsonFile = open(userDataFile, "w")
+        jsonFile.write(jsonString)
+        jsonFile.close()
+        noData = True
+
+def setUserData():
+    userData = {
+        "name": name.get(),
+        "supervisor": supervisor.get(),
+        "project": project.get(),
+        "initials": initials.get()
+    }
+    jsonString = json.dumps(userData)
+    jsonFile = open(userDataFile, "w")
+    jsonFile.write(jsonString)
+    jsonFile.close()
+
+dayTimeSheet = {
+    "clockIn": "",
+    "lunchOut": "",
+    "lunchIn": "",
+    "clockOut": ""
+}
+def setTimestamp(set):
+    if(set == 0):
+        dayTimeSheet.update({"clockIn": datetime.now().strftime("%I:%M %p")})
+        print(dayTimeSheet)
+    elif(set == 1):
+        dayTimeSheet.update({"lunchOut": datetime.now().strftime("%I:%M %p")})
+        print(dayTimeSheet)
+    elif(set == 2):
+        dayTimeSheet.update({"lunchIn": datetime.now().strftime("%I:%M %p")})
+        print(dayTimeSheet)
+    else:
+        dayTimeSheet.update({"clockOut": datetime.now().strftime("%I:%M %p")})
+        print(dayTimeSheet)
+
+# App Title
 header = customtkinter.CTkLabel(master=root_tk, text="Time Sheet", text_font=("Roboto Medium", -24))
 header.place(relx=0.5, rely=0.15, anchor=tkinter.CENTER)
 
@@ -19,16 +70,17 @@ xButtonRef = 0.8
 
 # Timestamp buttons and methods
 def clock_in():
-    print(name.get())
+    setUserData()
+    setTimestamp(0)
 
 def lunch_out():
-    print(name.get())
+    setTimestamp(1)
 
 def lunch_in():
-    print(name.get())
+    setTimestamp(2)
 
 def clock_out():
-    print(name.get())
+    setTimestamp(3)
 
 clockIn = customtkinter.CTkButton(master=root_tk, text="Clock In", command=clock_in)
 clockIn.place(relx=xButtonRef, rely=yButtonRef, anchor=tkinter.CENTER)
@@ -60,18 +112,40 @@ xInputRef = 0.25
 # Name text input
 name = customtkinter.CTkEntry(master=root_tk, placeholder_text="Name", width=200)
 name.place(relx=xInputRef, rely=yInputRef, anchor=tkinter.CENTER)
+name.insert(0, userData.get("name"))
 
 # Supervisor text input
 supervisor = customtkinter.CTkEntry(master=root_tk, placeholder_text="Supervisor", width=200)
 supervisor.place(relx=xInputRef, rely=yInputRef + 0.1, anchor=tkinter.CENTER)
+supervisor.insert(0, userData.get("supervisor"))
 
 # Project text input
 project = customtkinter.CTkEntry(master=root_tk, placeholder_text="Project", width=200)
 project.place(relx=xInputRef, rely=yInputRef + 0.2, anchor=tkinter.CENTER)
+project.insert(0, userData.get("project"))
 
 # Initials text input
 initials = customtkinter.CTkEntry(master=root_tk, placeholder_text="Initials", width=200)
 initials.place(relx=xInputRef, rely=yInputRef + 0.3, anchor=tkinter.CENTER)
+initials.insert(0, userData.get("initials"))
+
+#! ======================== LABELS FOR INPUTS ========================
+#! Current status: Functional
+#! Description:
+#!     Currently is working. If wanting to implement set xInputRef
+#!     to 0.4.
+#! ===================================================================
+# nameLabel = customtkinter.CTkLabel(master=root_tk, text="Name", width=50, text_font=("Roboto Medium", -15))
+# nameLabel.place(relx=0.13, rely=xInputRef, anchor=tkinter.CENTER)
+
+# supervisorLabel = customtkinter.CTkLabel(master=root_tk, text="Supervisor", width=50, text_font=("Roboto Medium", -15))
+# supervisorLabel.place(relx=0.1, rely=xInputRef + 0.1, anchor=tkinter.CENTER)
+
+# projectLabel = customtkinter.CTkLabel(master=root_tk, text="Project", width=50, text_font=("Roboto Medium", -15))
+# projectLabel.place(relx=0.12, rely=xInputRef + 0.2, anchor=tkinter.CENTER)
+
+# initialsLabel = customtkinter.CTkLabel(master=root_tk, text="Initials", width=50, text_font=("Roboto Medium", -15))
+# initialsLabel.place(relx=0.121, rely=xInputRef + 0.3, anchor=tkinter.CENTER)
 
 #! ==================== EXPERIMENTAL TIME DISPLAY ====================
 #! Current status: Partly functional
