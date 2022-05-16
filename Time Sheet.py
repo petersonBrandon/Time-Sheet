@@ -77,11 +77,11 @@ if(dayTimeSheet.get("clockIn") == ""):
 
 # TODO: FIX PREVIOUS DATE STAMP BEING OVERWRITTEN
 def setUserDayTime(mode):
+    print(timeSheet)
     if(mode == "update"):
         timeSheet.get("time")[len(timeSheet.get("time")) - 1] = dayTimeSheet.copy()
     elif(mode == "add"):
         timeSheet.get("time").append(dayTimeSheet)
-
     jsonString = json.dumps(timeSheet)
     jsonFile = open(timeDataFile, "w")
     jsonFile.write(jsonString)
@@ -96,6 +96,9 @@ def setTimestamp(set):
             setUserDayTime("update")
             newSheet = False
         else:
+            dayTimeSheet.update({"lunchOut": ""})
+            dayTimeSheet.update({"lunchIn": ""})
+            dayTimeSheet.update({"clockOut": ""})
             setUserDayTime("add")
     elif(set == 1):
         dayTimeSheet.update({"lunchOut": datetime.now().strftime("%I:%M %p")})
@@ -127,12 +130,14 @@ xButtonRef = 0.8
 # Timestamp buttons and methods
 def clock_in():
     clockIn.configure(state=tkinter.DISABLED)
+    clockOut.configure(state=tkinter.NORMAL)
     setUserData()
     checkDates()
     setTimestamp(0)
 
 def lunch_out():
     lunchOut.configure(state=tkinter.DISABLED)
+    lunchIn.configure(state=tkinter.NORMAL)
     setTimestamp(1)
 
 def lunch_in():
@@ -142,7 +147,7 @@ def lunch_in():
 def clock_out():
     clockIn.configure(state=tkinter.NORMAL)
     lunchOut.configure(state=tkinter.NORMAL)
-    lunchIn.configure(state=tkinter.NORMAL)
+    clockOut.configure(state=tkinter.DISABLED)
     setTimestamp(3)
 
 def end_period():
@@ -170,10 +175,10 @@ clockIn.place(relx=xButtonRef, rely=yButtonRef, anchor=tkinter.CENTER)
 lunchOut = customtkinter.CTkButton(master=root_tk, text="Lunch Out", command=lunch_out)
 lunchOut.place(relx=xButtonRef, rely=yButtonRef + 0.1, anchor=tkinter.CENTER)
 
-lunchIn = customtkinter.CTkButton(master=root_tk, text="Lunch In", command=lunch_in)
+lunchIn = customtkinter.CTkButton(master=root_tk, text="Lunch In", state=tkinter.DISABLED, command=lunch_in)
 lunchIn.place(relx=xButtonRef, rely=yButtonRef + 0.2, anchor=tkinter.CENTER)
 
-clockOut = customtkinter.CTkButton(master=root_tk, text="Clock Out", command=clock_out)
+clockOut = customtkinter.CTkButton(master=root_tk, text="Clock Out", state=tkinter.DISABLED, command=clock_out)
 clockOut.place(relx=xButtonRef, rely=yButtonRef + 0.3, anchor=tkinter.CENTER)
 
 endPeriod = customtkinter.CTkButton(master=root_tk, text="End Pay Peroid", fg_color="#D31515", hover_color="#950F0F", command=end_period)
