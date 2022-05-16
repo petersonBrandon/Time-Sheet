@@ -74,8 +74,8 @@ timeSheet = getTimeSheet()
 dayTimeSheet = timeSheet.get("time")[len(timeSheet.get("time")) - 1].copy()
 if(dayTimeSheet.get("clockIn") == ""):
     newSheet = True
-print(dayTimeSheet)
 
+# TODO: FIX PREVIOUS DATE STAMP BEING OVERWRITTEN
 def setUserDayTime(mode):
     if(mode == "update"):
         timeSheet.get("time")[len(timeSheet.get("time")) - 1] = dayTimeSheet.copy()
@@ -107,6 +107,15 @@ def setTimestamp(set):
         dayTimeSheet.update({"clockOut": datetime.now().strftime("%I:%M %p")})
         setUserDayTime("update")
 
+# TODO: CHECK IF THERE IS A GAP BETWEEN CLOCK IN DATES, FILL THE GAP WITH 0'S
+def checkDates():
+    currentMonth = datetime.now().strftime("%m")
+    # currentDay = datetime.now().strftime("%d")
+    # lastClockedDate = timeSheet.get("time")[len(timeSheet.get("time")) - 1].get("date").split("-")
+    # print(lastClockedDate)
+    # if(lastClockedDate[0] != ""):
+    #     print(lastClockedDate[1] < currentDay)
+
 # App Title
 header = customtkinter.CTkLabel(master=root_tk, text="Time Sheet", text_font=("Roboto Medium", -24))
 header.place(relx=0.5, rely=0.15, anchor=tkinter.CENTER)
@@ -119,6 +128,7 @@ xButtonRef = 0.8
 def clock_in():
     clockIn.configure(state=tkinter.DISABLED)
     setUserData()
+    checkDates()
     setTimestamp(0)
 
 def lunch_out():
