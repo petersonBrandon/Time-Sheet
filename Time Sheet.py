@@ -46,6 +46,10 @@ dayTimeSheet = {
     "lunchIn": "",
     "clockOut": ""
 }
+
+def setUserDayTime():
+    print("test")
+
 def setTimestamp(set):
     if(set == 0):
         dayTimeSheet.update({"clockIn": datetime.now().strftime("%I:%M %p")})
@@ -58,7 +62,7 @@ def setTimestamp(set):
         print(dayTimeSheet)
     else:
         dayTimeSheet.update({"clockOut": datetime.now().strftime("%I:%M %p")})
-        print(dayTimeSheet)
+        setUserDayTime()
 
 # App Title
 header = customtkinter.CTkLabel(master=root_tk, text="Time Sheet", text_font=("Roboto Medium", -24))
