@@ -18,7 +18,9 @@
 #?      - Better Comments
 #?
 #? GitHub:
-#?      https://github.com/petersonBrandon/Time-Sheet                                                                                            
+#?      https://github.com/petersonBrandon/Time-Sheet      
+#?
+#? ========================================================================================                                                                                       
 
 import tkinter
 import json
