@@ -82,7 +82,8 @@ def setUserData():
     userData = {
         "name": name.get(),
         "supervisor": supervisor.get(),
-        "initials": initials.get()
+        "initials": initials.get(),
+        "project": project.get()
     }
     jsonString = json.dumps(userData)
     jsonFile = open(userDataFile, "w")
