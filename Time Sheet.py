@@ -197,11 +197,11 @@ def checkDates():
 header = customtkinter.CTkLabel(master=root_tk, text="Time Sheet", text_font=("Roboto Medium", -24))
 header.place(relx=0.5, rely=0.15, anchor=tkinter.CENTER)
 
-#* Button global offset
-yButtonRef = 0.4
-xButtonRef = 0.8
-
-#* Timestamp buttons and methods
+#! ======================== BUTTON METHODS ===========================
+#! Description:
+#!      Methods that handle the clock in, clock out, lunch in, and 
+#!      lunch out button functions.
+#! ===================================================================
 def clock_in():
     clockIn.configure(state=tkinter.DISABLED)
     clockOut.configure(state=tkinter.NORMAL)
@@ -255,7 +255,15 @@ def end_period():
     jsonFile.write(jsonString)
     jsonFile.close()
 
-#* Button Elements
+
+#! ======================= BUTTON ELEMENTS ===========================
+#! Description:
+#!      The button elements seen on the window
+#! ===================================================================
+#* Button global offset
+yButtonRef = 0.4
+xButtonRef = 0.8
+
 clockIn = customtkinter.CTkButton(master=root_tk, text="Clock In", command=clock_in)
 clockIn.place(relx=xButtonRef, rely=yButtonRef, anchor=tkinter.CENTER)
 
@@ -321,6 +329,11 @@ while(preferencesMissing):
 if(preferences.get("darkEnabled")):
     switch_1.select()
 
+
+#! ======================= TEXTBOX ELEMENTS ==========================
+#! Description:
+#!      All the textbox elements displayed on screen.
+#! ===================================================================
 #* Text Input global offset
 yInputRef = 0.4
 xInputRef = 0.25
