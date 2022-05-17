@@ -218,6 +218,30 @@ def checkDates():
 header = customtkinter.CTkLabel(master=root_tk, text="Time Sheet", text_font=("Roboto Medium", -24))
 header.place(relx=0.5, rely=0.15, anchor=tkinter.CENTER)
 
+
+#! ======================= PUCH CARD LABELS ==========================
+#! Description:
+#!      Display the timestamp for the punch button clicked.
+#! ===================================================================
+yLabelRef = 0.4
+xLabelRef = 0.56
+
+def getClockInLabel():
+    clockInLabel = customtkinter.CTkLabel(master=root_tk, text=dayTimeSheet.get("clockIn"), width=50, text_font=("Roboto Medium", -15))
+    clockInLabel.place(relx=xLabelRef, rely=yLabelRef, anchor=tkinter.CENTER)
+
+def getLunchOutLabel():
+    lunchOutLabel = customtkinter.CTkLabel(master=root_tk, text=dayTimeSheet.get("lunchOut"), width=50, text_font=("Roboto Medium", -15))
+    lunchOutLabel.place(relx=xLabelRef, rely=yLabelRef + 0.1, anchor=tkinter.CENTER)
+
+def getLunchInLabel():
+    lunchInLabel = customtkinter.CTkLabel(master=root_tk, text=dayTimeSheet.get("lunchIn"), width=50, text_font=("Roboto Medium", -15))
+    lunchInLabel.place(relx=xLabelRef, rely=yLabelRef + 0.2, anchor=tkinter.CENTER)
+
+def getClockOutLabel():
+    clockOutLabel = customtkinter.CTkLabel(master=root_tk, text=dayTimeSheet.get("clockOut"), width=50, text_font=("Roboto Medium", -15))
+    clockOutLabel.place(relx=xLabelRef, rely=yLabelRef + 0.3, anchor=tkinter.CENTER)
+
 #! ======================== BUTTON METHODS ===========================
 #! Description:
 #!      Methods that handle the clock in, clock out, lunch in, and 
@@ -230,20 +254,24 @@ def clock_in():
     setUserData()
     checkDates()
     setTimestamp(0)
+    getClockInLabel()
 
 def lunch_out():
     lunchOut.configure(state=tkinter.DISABLED, fg_color="#6C6C6C")
     lunchIn.configure(state=tkinter.NORMAL, fg_color="#1c94cf")
     setTimestamp(1)
+    getLunchOutLabel()
 
 def lunch_in():
     lunchIn.configure(state=tkinter.DISABLED, fg_color="#6C6C6C")
     setTimestamp(2)
+    getLunchInLabel()
 
 def clock_out():
     clockIn.configure(state=tkinter.NORMAL, fg_color="#1c94cf")
     clockOut.configure(state=tkinter.DISABLED, fg_color="#6C6C6C")
     setTimestamp(3)
+    getClockOutLabel()
 
 #! ======================== END PAY PERIOD ===========================
 #! Description:
@@ -307,23 +335,27 @@ endPeriod.place(relx=xButtonRef, rely=yButtonRef + 0.5, anchor=tkinter.CENTER)
 #! ===================================================================
 if(dayTimeSheet.get("clockIn") != "" and datetime.today().date() == datetime.strptime(dayTimeSheet.get("date"), "%m-%d-%Y").date()):
     clockIn.configure(state=tkinter.DISABLED, fg_color="#6C6C6C")
-    lunchOut.configure(state=tkinter.NORMAL,fg_color="blue")
+    lunchOut.configure(state=tkinter.NORMAL,fg_color="#1c94cf")
     clockOut.configure(state=tkinter.NORMAL, fg_color="#1c94cf")
+    getClockInLabel()
 
 if(dayTimeSheet.get("lunchOut") != "" and datetime.today().date() == datetime.strptime(dayTimeSheet.get("date"), "%m-%d-%Y").date()):
     clockIn.configure(state=tkinter.DISABLED, fg_color="#6C6C6C")
     lunchOut.configure(state=tkinter.DISABLED, fg_color="#6C6C6C")
     lunchIn.configure(state=tkinter.NORMAL, fg_color="#1c94cf")
+    getLunchOutLabel()
 
 if(dayTimeSheet.get("lunchIn") != "" and datetime.today().date() == datetime.strptime(dayTimeSheet.get("date"), "%m-%d-%Y").date()):
     clockOut.configure(state=tkinter.NORMAL, fg_color="#1c94cf")
     clockIn.configure(state=tkinter.DISABLED, fg_color="#6C6C6C")
     lunchOut.configure(state=tkinter.DISABLED, fg_color="#6C6C6C")
     lunchIn.configure(state=tkinter.DISABLED, fg_color="#6C6C6C")
+    getLunchInLabel()
 
 if(dayTimeSheet.get("clockOut") != "" and datetime.today().date() == datetime.strptime(dayTimeSheet.get("date"), "%m-%d-%Y").date()):
     clockIn.configure(state=tkinter.NORMAL, fg_color="#1c94cf")
     clockOut.configure(state=tkinter.DISABLED, fg_color="#6C6C6C")
+    getClockOutLabel()
 
 #! ======================== SAVE PREFERENCES =========================
 #! Description:
