@@ -14,6 +14,9 @@
 #? Description:
 #?      A relatively simple time sheet generator/digital punch card.
 #? 
+#? External Dependencies:
+#?      - customtkinter
+#?
 #? Recommended VSCode Extensions:
 #?      - Better Comments
 #?
