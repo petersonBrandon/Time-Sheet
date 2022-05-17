@@ -156,8 +156,8 @@ def calculateHours():
     todayLunchIn = datetime.strptime(dayTimeSheet.get("lunchIn"), "%I:%M %p")
     todayOut = datetime.strptime(dayTimeSheet.get("clockOut"), "%I:%M %p")
     
-    # day = calendar.day_name[datetime.today().weekday()]
-    day = calendar.day_name[4]
+    day = calendar.day_name[datetime.today().weekday()]
+    # day = calendar.day_name[4]
     hour1 = (((todayLunchOut - todayIn).seconds)/60)/60
     hour2 = (((todayOut - todayLunchIn).seconds)/60)/60
     regularHours = hour1 + hour2
@@ -430,7 +430,6 @@ while(preferencesMissing):
     try:
         preferencesFile = open("userPreferences.json")
         preferences = json.load(preferencesFile)
-        print(preferences)
         preferencesMissing = False
     except:
         savePreferences(True)
