@@ -27,6 +27,7 @@ import json
 import os
 import customtkinter
 from datetime import datetime, timedelta
+import calendar
 
 
 #! ======================== MAIN WINDOW SETUP ========================
@@ -110,7 +111,9 @@ def getTimeSheet():
                     "clockIn": "",
                     "lunchOut": "",
                     "lunchIn": "",
-                    "clockOut": ""
+                    "clockOut": "",
+                    "regularHrs": "",
+                    "overtimeHrs": ""
                 }]
             }
             jsonString = json.dumps(defaultData)
@@ -139,6 +142,23 @@ def setUserDayTime(mode):
     jsonFile.write(jsonString)
     jsonFile.close()
 
+def calculateHours():
+    todayIn = datetime.strptime(dayTimeSheet.get("clockIn"), "%I:%M %p")
+    todayLunchOut = datetime.strptime(dayTimeSheet.get("lunchOut"), "%I:%M %p")
+    todayLunchIn = datetime.strptime(dayTimeSheet.get("lunchIn"), "%I:%M %p")
+    todayOut = datetime.strptime(dayTimeSheet.get("clockOut"), "%I:%M %p")
+    
+    day = calendar.day_name[datetime.today().weekday()]
+    if(day != "Friday"):
+        hour1 = (((todayLunchOut - todayIn).seconds)/60)/60
+        hour2 = (((todayOut - todayLunchIn).seconds)/60)/60
+        regularHours = hour1 + hour2
+        regularHours = '{0:.1g}'.format(regularHours)
+        print(hour1)
+        print(hour2)
+        print(regularHours)
+
+
 #! ========================= SET TIMESTAMP ===========================
 #! Description:
 #!      Sets current date, and sets the timestamp for each card punch.
@@ -164,6 +184,7 @@ def setTimestamp(set):
         setUserDayTime("update")
     else:
         dayTimeSheet.update({"clockOut": datetime.now().strftime("%I:%M %p")})
+        calculateHours()
         setUserDayTime("update")
 
 #! ========================== CHECK DATES ============================
@@ -203,25 +224,25 @@ header.place(relx=0.5, rely=0.15, anchor=tkinter.CENTER)
 #!      lunch out button functions.
 #! ===================================================================
 def clock_in():
-    clockIn.configure(state=tkinter.DISABLED)
-    clockOut.configure(state=tkinter.NORMAL)
+    clockIn.configure(state=tkinter.DISABLED, fg_color="#6C6C6C")
+    lunchOut.configure(state=tkinter.NORMAL, fg_color="#1c94cf")
+    clockOut.configure(state=tkinter.NORMAL, fg_color="#1c94cf")
     setUserData()
     checkDates()
     setTimestamp(0)
 
 def lunch_out():
-    lunchOut.configure(state=tkinter.DISABLED)
-    lunchIn.configure(state=tkinter.NORMAL)
+    lunchOut.configure(state=tkinter.DISABLED, fg_color="#6C6C6C")
+    lunchIn.configure(state=tkinter.NORMAL, fg_color="#1c94cf")
     setTimestamp(1)
 
 def lunch_in():
-    lunchIn.configure(state=tkinter.DISABLED)
+    lunchIn.configure(state=tkinter.DISABLED, fg_color="#6C6C6C")
     setTimestamp(2)
 
 def clock_out():
-    clockIn.configure(state=tkinter.NORMAL)
-    lunchOut.configure(state=tkinter.NORMAL)
-    clockOut.configure(state=tkinter.DISABLED)
+    clockIn.configure(state=tkinter.NORMAL, fg_color="#1c94cf")
+    clockOut.configure(state=tkinter.DISABLED, fg_color="#6C6C6C")
     setTimestamp(3)
 
 #! ======================== END PAY PERIOD ===========================
@@ -255,7 +276,6 @@ def end_period():
     jsonFile.write(jsonString)
     jsonFile.close()
 
-
 #! ======================= BUTTON ELEMENTS ===========================
 #! Description:
 #!      The button elements seen on the window
@@ -267,17 +287,43 @@ xButtonRef = 0.8
 clockIn = customtkinter.CTkButton(master=root_tk, text="Clock In", command=clock_in)
 clockIn.place(relx=xButtonRef, rely=yButtonRef, anchor=tkinter.CENTER)
 
-lunchOut = customtkinter.CTkButton(master=root_tk, text="Lunch Out", command=lunch_out)
+lunchOut = customtkinter.CTkButton(master=root_tk, text="Lunch Out", state=tkinter.DISABLED, fg_color="#6C6C6C", command=lunch_out)
 lunchOut.place(relx=xButtonRef, rely=yButtonRef + 0.1, anchor=tkinter.CENTER)
 
-lunchIn = customtkinter.CTkButton(master=root_tk, text="Lunch In", state=tkinter.DISABLED, command=lunch_in)
+lunchIn = customtkinter.CTkButton(master=root_tk, text="Lunch In", state=tkinter.DISABLED, fg_color="#6C6C6C", command=lunch_in)
 lunchIn.place(relx=xButtonRef, rely=yButtonRef + 0.2, anchor=tkinter.CENTER)
 
-clockOut = customtkinter.CTkButton(master=root_tk, text="Clock Out", state=tkinter.DISABLED, command=clock_out)
+clockOut = customtkinter.CTkButton(master=root_tk, text="Clock Out", state=tkinter.DISABLED, fg_color="#6C6C6C", command=clock_out)
 clockOut.place(relx=xButtonRef, rely=yButtonRef + 0.3, anchor=tkinter.CENTER)
 
 endPeriod = customtkinter.CTkButton(master=root_tk, text="End Pay Peroid", fg_color="#D31515", hover_color="#950F0F", command=end_period)
 endPeriod.place(relx=xButtonRef, rely=yButtonRef + 0.5, anchor=tkinter.CENTER)
+
+#! ======================= BUTTON PRECONFIG ==========================
+#! Description:
+#!      Disable or enable buttons based on todays timestamps.
+#!      Designed to be a safety if the app crashes or is closed on
+#!      accident.
+#! ===================================================================
+if(dayTimeSheet.get("clockIn") != "" and datetime.today().date() == datetime.strptime(dayTimeSheet.get("date"), "%m-%d-%Y").date()):
+    clockIn.configure(state=tkinter.DISABLED, fg_color="#6C6C6C")
+    lunchOut.configure(state=tkinter.NORMAL,fg_color="blue")
+    clockOut.configure(state=tkinter.NORMAL, fg_color="#1c94cf")
+
+if(dayTimeSheet.get("lunchOut") != "" and datetime.today().date() == datetime.strptime(dayTimeSheet.get("date"), "%m-%d-%Y").date()):
+    clockIn.configure(state=tkinter.DISABLED, fg_color="#6C6C6C")
+    lunchOut.configure(state=tkinter.DISABLED, fg_color="#6C6C6C")
+    lunchIn.configure(state=tkinter.NORMAL, fg_color="#1c94cf")
+
+if(dayTimeSheet.get("lunchIn") != "" and datetime.today().date() == datetime.strptime(dayTimeSheet.get("date"), "%m-%d-%Y").date()):
+    clockOut.configure(state=tkinter.NORMAL, fg_color="#1c94cf")
+    clockIn.configure(state=tkinter.DISABLED, fg_color="#6C6C6C")
+    lunchOut.configure(state=tkinter.DISABLED, fg_color="#6C6C6C")
+    lunchIn.configure(state=tkinter.DISABLED, fg_color="#6C6C6C")
+
+if(dayTimeSheet.get("clockOut") != "" and datetime.today().date() == datetime.strptime(dayTimeSheet.get("date"), "%m-%d-%Y").date()):
+    clockIn.configure(state=tkinter.NORMAL, fg_color="#1c94cf")
+    clockOut.configure(state=tkinter.DISABLED, fg_color="#6C6C6C")
 
 #! ======================== SAVE PREFERENCES =========================
 #! Description:
