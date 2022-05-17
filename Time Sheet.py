@@ -82,7 +82,6 @@ def setUserData():
     userData = {
         "name": name.get(),
         "supervisor": supervisor.get(),
-        "project": project.get(),
         "initials": initials.get()
     }
     jsonString = json.dumps(userData)
@@ -108,6 +107,7 @@ def getTimeSheet():
             defaultData = { 
                 "time" : [{
                     "date": "",
+                    "project" : "",
                     "clockIn": "",
                     "lunchOut": "",
                     "lunchIn": "",
@@ -192,8 +192,9 @@ def setTimestamp(set):
     global newSheet
     if(set == 0):
         dayTimeSheet.update({"date": datetime.now().strftime("%m-%d-%Y")})
-        # dayTimeSheet.update({"clockIn": datetime.now().strftime("%I:%M %p")})
-        dayTimeSheet.update({"clockIn": "09:00 AM"})
+        dayTimeSheet.update({"project": project.get()})
+        dayTimeSheet.update({"clockIn": datetime.now().strftime("%I:%M %p")})
+        # dayTimeSheet.update({"clockIn": "09:00 AM"})
         if(newSheet):
             setUserDayTime("update")
             newSheet = False
@@ -203,16 +204,16 @@ def setTimestamp(set):
             dayTimeSheet.update({"clockOut": ""})
             setUserDayTime("add")
     elif(set == 1):
-        # dayTimeSheet.update({"lunchOut": datetime.now().strftime("%I:%M %p")})
-        dayTimeSheet.update({"lunchOut": "01:00 PM"})
+        dayTimeSheet.update({"lunchOut": datetime.now().strftime("%I:%M %p")})
+        # dayTimeSheet.update({"lunchOut": "01:00 PM"})
         setUserDayTime("update")
     elif(set == 2):
-        # dayTimeSheet.update({"lunchIn": datetime.now().strftime("%I:%M %p")})
-        dayTimeSheet.update({"lunchIn": "02:00 PM"})
+        dayTimeSheet.update({"lunchIn": datetime.now().strftime("%I:%M %p")})
+        # dayTimeSheet.update({"lunchIn": "02:00 PM"})
         setUserDayTime("update")
     else:
-        # dayTimeSheet.update({"clockOut": datetime.now().strftime("%I:%M %p")})
-        dayTimeSheet.update({"clockOut": "07:00 PM"})
+        dayTimeSheet.update({"clockOut": datetime.now().strftime("%I:%M %p")})
+        # dayTimeSheet.update({"clockOut": "07:00 PM"})
         calculateHours()
         setUserDayTime("update")
 
