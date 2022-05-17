@@ -1,8 +1,8 @@
 import tkinter
 import json
-import shutil
+import os
 import customtkinter
-from datetime import datetime
+from datetime import datetime, timedelta
 
 customtkinter.set_appearance_mode("light")  # Modes: system (default), light, dark
 customtkinter.set_default_color_theme("blue")  # Themes: blue (default), dark-blue, green
@@ -75,9 +75,7 @@ dayTimeSheet = timeSheet.get("time")[len(timeSheet.get("time")) - 1].copy()
 if(dayTimeSheet.get("clockIn") == ""):
     newSheet = True
 
-# TODO: FIX PREVIOUS DATE STAMP BEING OVERWRITTEN
 def setUserDayTime(mode):
-    print(timeSheet)
     if(mode == "update"):
         timeSheet.get("time")[len(timeSheet.get("time")) - 1] = dayTimeSheet.copy()
     elif(mode == "add"):
@@ -110,14 +108,26 @@ def setTimestamp(set):
         dayTimeSheet.update({"clockOut": datetime.now().strftime("%I:%M %p")})
         setUserDayTime("update")
 
-# TODO: CHECK IF THERE IS A GAP BETWEEN CLOCK IN DATES, FILL THE GAP WITH 0'S
 def checkDates():
-    currentMonth = datetime.now().strftime("%m")
-    # currentDay = datetime.now().strftime("%d")
-    # lastClockedDate = timeSheet.get("time")[len(timeSheet.get("time")) - 1].get("date").split("-")
-    # print(lastClockedDate)
-    # if(lastClockedDate[0] != ""):
-    #     print(lastClockedDate[1] < currentDay)
+    currentDate = datetime.now()
+    currentDay = datetime.now().strftime("%d")
+    lastClockedDate = timeSheet.get("time")[len(timeSheet.get("time")) - 1].get("date").split("-")
+    if(lastClockedDate[0] != ""):
+        lastDate = datetime(int(lastClockedDate[2]), int(lastClockedDate[0]), int(lastClockedDate[1]))
+    if(lastClockedDate[0] != "" and lastDate < currentDate):
+        timeSpan = currentDate - lastDate
+        timeSpan = timeSpan.days
+        newDate = datetime(int(lastClockedDate[2]), int(lastClockedDate[0]), int(lastClockedDate[1]))
+        for i in range(timeSpan - 1):
+            newDate += timedelta(days=1)
+            tempTime = {
+                "date": newDate.strftime("%m-%d-%Y"),
+                "clockIn": "",
+                "lunchOut": "",
+                "lunchIn": "",
+                "clockOut": ""
+            }
+            timeSheet.get("time").append(tempTime)
 
 # App Title
 header = customtkinter.CTkLabel(master=root_tk, text="Time Sheet", text_font=("Roboto Medium", -24))
@@ -151,10 +161,17 @@ def clock_out():
     setTimestamp(3)
 
 def end_period():
+    os.mkdir("./Sheets")
     payPeriod = timeSheet.get("time")[0].get("date") + " - " + datetime.now().strftime("%m-%d-%Y")
-    jsonFile = open(payPeriod + ".json", "w")
+    payPeriodObj = timeSheet
+    payPeriodObj["userInfo"] = userData
+    print(payPeriodObj)
+    jsonString = json.dumps(payPeriodObj)
+    jsonFile = open(os.path.join("./Sheets", payPeriod + ".json"), "w")
+    jsonFile.write(jsonString)
     jsonFile.close()
-    shutil.copyfile(timeDataFile, payPeriod + ".json")
+    
+    # Reset temp time stamp file
     defaultData = { 
         "time" : [{
             "date": "",
@@ -184,16 +201,41 @@ clockOut.place(relx=xButtonRef, rely=yButtonRef + 0.3, anchor=tkinter.CENTER)
 endPeriod = customtkinter.CTkButton(master=root_tk, text="End Pay Peroid", fg_color="#D31515", hover_color="#950F0F", command=end_period)
 endPeriod.place(relx=xButtonRef, rely=yButtonRef + 0.5, anchor=tkinter.CENTER)
 
+def savePreferences(darkEnabled):
+    defaultData = { 
+        "darkEnabled": darkEnabled
+    }
+    jsonString = json.dumps(defaultData)
+    jsonFile = open("userPreferences.json", "w")
+    jsonFile.write(jsonString)
+    jsonFile.close()
+
 # Dark Mode toggle button and method
 def dark_toggle():
     if(switch_1.get() == "on"):
         customtkinter.set_appearance_mode("dark")
+        savePreferences(True)
     else:
         customtkinter.set_appearance_mode("light")
+        savePreferences(False)
 
 switch_1 = customtkinter.CTkSwitch(master=root_tk, text="Dark Mode", command=dark_toggle, onvalue="on", offvalue="off")
 switch_1.place(relx=0.15, rely=0.9, anchor=tkinter.CENTER)
-switch_1.select()
+
+preferences = ""
+preferencesMissing = True
+while(preferencesMissing):
+    try:
+        preferencesFile = open("userPreferences.json")
+        preferences = json.load(preferencesFile)
+        print(preferences)
+        preferencesMissing = False
+    except:
+        savePreferences(True)
+        preferencesMissing = True
+
+if(preferences.get("darkEnabled")):
+    switch_1.select()
 
 # Text Input global offset
 yInputRef = 0.4
