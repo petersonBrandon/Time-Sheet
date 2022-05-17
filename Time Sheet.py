@@ -142,21 +142,46 @@ def setUserDayTime(mode):
     jsonFile.write(jsonString)
     jsonFile.close()
 
+#! ======================= CALCULATE HOURS ===========================
+#! Description:
+#!      Determines hours worked for the day. On friday total hours 
+#!      are counted and overtime is set on the last day.
+#! ===================================================================
+
+# TODO: Capability to change "last day of week" based on user preference.
 def calculateHours():
+    setUserDayTime("update")
     todayIn = datetime.strptime(dayTimeSheet.get("clockIn"), "%I:%M %p")
     todayLunchOut = datetime.strptime(dayTimeSheet.get("lunchOut"), "%I:%M %p")
     todayLunchIn = datetime.strptime(dayTimeSheet.get("lunchIn"), "%I:%M %p")
     todayOut = datetime.strptime(dayTimeSheet.get("clockOut"), "%I:%M %p")
     
-    day = calendar.day_name[datetime.today().weekday()]
-    if(day != "Friday"):
-        hour1 = (((todayLunchOut - todayIn).seconds)/60)/60
-        hour2 = (((todayOut - todayLunchIn).seconds)/60)/60
-        regularHours = hour1 + hour2
-        regularHours = '{0:.1g}'.format(regularHours)
-        print(hour1)
-        print(hour2)
-        print(regularHours)
+    # day = calendar.day_name[datetime.today().weekday()]
+    day = calendar.day_name[4]
+    hour1 = (((todayLunchOut - todayIn).seconds)/60)/60
+    hour2 = (((todayOut - todayLunchIn).seconds)/60)/60
+    regularHours = hour1 + hour2
+    regularHours = '{0:.1g}'.format(regularHours)
+    
+    if(day == "Friday"):
+        totalHours = 0
+        for day in timeSheet.get("time"):
+            dayIn = datetime.strptime(day.get("clockIn"), "%I:%M %p")
+            dayLunchOut = datetime.strptime(day.get("lunchOut"), "%I:%M %p")
+            dayLunchIn = datetime.strptime(day.get("lunchIn"), "%I:%M %p")
+            dayOut = datetime.strptime(day.get("clockOut"), "%I:%M %p")
+
+            hour1 = (((dayLunchOut - dayIn).seconds)/60)/60
+            hour2 = (((dayOut - dayLunchIn).seconds)/60)/60
+            hours = hour1 + hour2
+            hours = '{0:.1g}'.format(hours)
+            totalHours = totalHours + float(hours)
+        if(totalHours > 40):
+            regularHours = "8"
+            overtimeHours = totalHours - 40
+            dayTimeSheet.update({"overtimeHrs": str(overtimeHours)})
+        
+    dayTimeSheet.update({"regularHrs": regularHours})
 
 
 #! ========================= SET TIMESTAMP ===========================
@@ -167,7 +192,8 @@ def setTimestamp(set):
     global newSheet
     if(set == 0):
         dayTimeSheet.update({"date": datetime.now().strftime("%m-%d-%Y")})
-        dayTimeSheet.update({"clockIn": datetime.now().strftime("%I:%M %p")})
+        # dayTimeSheet.update({"clockIn": datetime.now().strftime("%I:%M %p")})
+        dayTimeSheet.update({"clockIn": "09:00 AM"})
         if(newSheet):
             setUserDayTime("update")
             newSheet = False
@@ -177,13 +203,16 @@ def setTimestamp(set):
             dayTimeSheet.update({"clockOut": ""})
             setUserDayTime("add")
     elif(set == 1):
-        dayTimeSheet.update({"lunchOut": datetime.now().strftime("%I:%M %p")})
+        # dayTimeSheet.update({"lunchOut": datetime.now().strftime("%I:%M %p")})
+        dayTimeSheet.update({"lunchOut": "01:00 PM"})
         setUserDayTime("update")
     elif(set == 2):
-        dayTimeSheet.update({"lunchIn": datetime.now().strftime("%I:%M %p")})
+        # dayTimeSheet.update({"lunchIn": datetime.now().strftime("%I:%M %p")})
+        dayTimeSheet.update({"lunchIn": "02:00 PM"})
         setUserDayTime("update")
     else:
-        dayTimeSheet.update({"clockOut": datetime.now().strftime("%I:%M %p")})
+        # dayTimeSheet.update({"clockOut": datetime.now().strftime("%I:%M %p")})
+        dayTimeSheet.update({"clockOut": "07:00 PM"})
         calculateHours()
         setUserDayTime("update")
 
@@ -210,7 +239,9 @@ def checkDates():
                 "clockIn": "",
                 "lunchOut": "",
                 "lunchIn": "",
-                "clockOut": ""
+                "clockOut": "",
+                "regularHrs": "",
+                "overtimeHrs": ""
             }
             timeSheet.get("time").append(tempTime)
 
