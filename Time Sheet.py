@@ -31,6 +31,7 @@ import os
 import customtkinter
 from datetime import datetime, timedelta
 import calendar
+import subprocess
 
 
 #! ======================== MAIN WINDOW SETUP ========================
@@ -376,6 +377,7 @@ def end_period():
     jsonFile = open(timeDataFile, "w")
     jsonFile.write(jsonString)
     jsonFile.close()
+    subprocess.call("python generateWeb.py 1")
 
 #! ======================= BUTTON ELEMENTS ===========================
 #! Description:
