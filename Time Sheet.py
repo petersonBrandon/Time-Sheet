@@ -46,6 +46,9 @@ root_tk.geometry("500x400") # Set window dimenstions
 root_tk.resizable(width=False, height=False) # Prevent window resizing
 root_tk.title("Time Sheet") # Set window title
 
+icon = "public\clock-icon.ico"
+root_tk.iconbitmap(icon)
+
 #! ======================== GLOBAL VARIABLES =========================
 #! Description:
 #!      Sets up over theme and window configuration.
