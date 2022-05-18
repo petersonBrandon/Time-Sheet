@@ -208,7 +208,7 @@ def setTimestamp(set):
     if(set == 0):
         dayTimeSheet.update({"date": datetime.now().strftime("%m-%d-%Y")})
         dayTimeSheet.update({"project": project.get()})
-        dayTimeSheet.update({"clockIn": datetime.now().strftime("%I:%M %p")})
+        dayTimeSheet.update({"clockIn": datetime.now().strftime("%I:%M%p")})
         # dayTimeSheet.update({"clockIn": "09:00AM"})
         if(newSheet):
             setUserDayTime("update")
@@ -219,15 +219,15 @@ def setTimestamp(set):
             dayTimeSheet.update({"clockOut": ""})
             setUserDayTime("add")
     elif(set == 1):
-        dayTimeSheet.update({"lunchOut": datetime.now().strftime("%I:%M %p")})
+        dayTimeSheet.update({"lunchOut": datetime.now().strftime("%I:%M%p")})
         # dayTimeSheet.update({"lunchOut": "01:00PM"})
         setUserDayTime("update")
     elif(set == 2):
-        dayTimeSheet.update({"lunchIn": datetime.now().strftime("%I:%M %p")})
+        dayTimeSheet.update({"lunchIn": datetime.now().strftime("%I:%M%p")})
         # dayTimeSheet.update({"lunchIn": "02:00PM"})
         setUserDayTime("update")
     else:
-        dayTimeSheet.update({"clockOut": datetime.now().strftime("%I:%M %p")})
+        dayTimeSheet.update({"clockOut": datetime.now().strftime("%I:%M%p")})
         # dayTimeSheet.update({"clockOut": "09:00PM"})
         calculateHours()
         setUserDayTime("update")
