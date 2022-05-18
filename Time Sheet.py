@@ -155,39 +155,47 @@ def setUserDayTime(mode):
 # TODO: Capability to change "last day of week" based on user preference.
 def calculateHours():
     setUserDayTime("update")
-    todayIn = datetime.strptime(dayTimeSheet.get("clockIn"), "%I:%M %p")
-    todayLunchOut = datetime.strptime(dayTimeSheet.get("lunchOut"), "%I:%M %p")
-    todayLunchIn = datetime.strptime(dayTimeSheet.get("lunchIn"), "%I:%M %p")
-    todayOut = datetime.strptime(dayTimeSheet.get("clockOut"), "%I:%M %p")
+    todayIn = datetime.strptime(dayTimeSheet.get("clockIn"), "%I:%M%p")
+    todayLunchOut = datetime.strptime(dayTimeSheet.get("lunchOut"), "%I:%M%p")
+    todayLunchIn = datetime.strptime(dayTimeSheet.get("lunchIn"), "%I:%M%p")
+    todayOut = datetime.strptime(dayTimeSheet.get("clockOut"), "%I:%M%p")
     
     # day = calendar.day_name[datetime.today().weekday()]
-    day = calendar.day_name[4]
+    # day = calendar.day_name[4]
     hour1 = (((todayLunchOut - todayIn).seconds)/60)/60
     hour2 = (((todayOut - todayLunchIn).seconds)/60)/60
     regularHours = hour1 + hour2
-    regularHours = '{0:.1g}'.format(regularHours)
     overtimeHours = 0
     
-    if(day == "Friday"):
-        totalHours = 0
-        for index in range(5):
-            day = timeSheet.get("time")[len(timeSheet.get("time")) - 1 - index]
-            dayIn = datetime.strptime(day.get("clockIn"), "%I:%M %p")
-            dayLunchOut = datetime.strptime(day.get("lunchOut"), "%I:%M %p")
-            dayLunchIn = datetime.strptime(day.get("lunchIn"), "%I:%M %p")
-            dayOut = datetime.strptime(day.get("clockOut"), "%I:%M %p")
+    totalHours = 0
+    # day = datetime.today().weekday()
+    # day = 0 #Monday
+    # day = 1 #Tuesday
+    # day = 2 #Wednesday
+    # day = 3 #Thursday
+    day = 4 #Friday
+    for index in range(day + 1):
+        day = timeSheet.get("time")[len(timeSheet.get("time")) - 1 - index]
+        try:
+            dayIn = datetime.strptime(day.get("clockIn"), "%I:%M%p")
+            dayLunchOut = datetime.strptime(day.get("lunchOut"), "%I:%M%p")
+            dayLunchIn = datetime.strptime(day.get("lunchIn"), "%I:%M%p")
+            dayOut = datetime.strptime(day.get("clockOut"), "%I:%M%p")
 
             hour1 = (((dayLunchOut - dayIn).seconds)/60)/60
             hour2 = (((dayOut - dayLunchIn).seconds)/60)/60
             hours = hour1 + hour2
-            hours = '{0:.1g}'.format(hours)
             totalHours = totalHours + float(hours)
-        if(totalHours > 40):
-            overtimeHours = totalHours - 40
-            regularHours = float(regularHours) - overtimeHours
+        except:
+            print("This date did not have any time stamps.")
+    if(totalHours > 40):
+        overtimeHours = totalHours - 40
+        regularHours = float(regularHours) - overtimeHours
 
     if(overtimeHours == 0):
         overtimeHours = ""
+    if(regularHours < 0):
+        regularHours = ""
     dayTimeSheet.update({"overtimeHrs": str(overtimeHours)})    
     dayTimeSheet.update({"regularHrs": str(regularHours)})
 
@@ -202,7 +210,7 @@ def setTimestamp(set):
         dayTimeSheet.update({"date": datetime.now().strftime("%m-%d-%Y")})
         dayTimeSheet.update({"project": project.get()})
         # dayTimeSheet.update({"clockIn": datetime.now().strftime("%I:%M %p")})
-        dayTimeSheet.update({"clockIn": "09:00 AM"})
+        dayTimeSheet.update({"clockIn": "09:00AM"})
         if(newSheet):
             setUserDayTime("update")
             newSheet = False
@@ -213,15 +221,15 @@ def setTimestamp(set):
             setUserDayTime("add")
     elif(set == 1):
         # dayTimeSheet.update({"lunchOut": datetime.now().strftime("%I:%M %p")})
-        dayTimeSheet.update({"lunchOut": "01:00 PM"})
+        dayTimeSheet.update({"lunchOut": "01:00PM"})
         setUserDayTime("update")
     elif(set == 2):
         # dayTimeSheet.update({"lunchIn": datetime.now().strftime("%I:%M %p")})
-        dayTimeSheet.update({"lunchIn": "02:00 PM"})
+        dayTimeSheet.update({"lunchIn": "02:00PM"})
         setUserDayTime("update")
     else:
         # dayTimeSheet.update({"clockOut": datetime.now().strftime("%I:%M %p")})
-        dayTimeSheet.update({"clockOut": "07:00 PM"})
+        dayTimeSheet.update({"clockOut": "09:00PM"})
         calculateHours()
         setUserDayTime("update")
 
@@ -234,6 +242,8 @@ def setTimestamp(set):
 def checkDates():
     currentDate = datetime.now()
     currentDay = datetime.now().strftime("%d")
+    weekDay = calendar.day_name[datetime.today().weekday()]
+    # weekDay = calendar.day_name[0]
     lastClockedDate = timeSheet.get("time")[len(timeSheet.get("time")) - 1].get("date").split("-")
     if(lastClockedDate[0] != ""):
         lastDate = datetime(int(lastClockedDate[2]), int(lastClockedDate[0]), int(lastClockedDate[1]))
@@ -247,6 +257,7 @@ def checkDates():
             if(day != "Saturday" and day != "Sunday"):
                 tempTime = {
                     "date": newDate.strftime("%m-%d-%Y"),
+                    "project" : "",
                     "clockIn": "",
                     "lunchOut": "",
                     "lunchIn": "",
@@ -255,6 +266,26 @@ def checkDates():
                     "overtimeHrs": ""
                 }
                 timeSheet.get("time").append(tempTime)
+    elif(weekDay != "Monday"):
+        wd = datetime.today().weekday()
+        tempDate = datetime.today() - timedelta(days=wd)
+        for i in range(wd + 1):
+            day = calendar.day_name[tempDate.weekday()]
+            tempTime = {
+                "date": tempDate.strftime("%m-%d-%Y"),
+                "project" : "",
+                "clockIn": "",
+                "lunchOut": "",
+                "lunchIn": "",
+                "clockOut": "",
+                "regularHrs": "",
+                "overtimeHrs": ""
+            }
+            if(day == "Monday"):
+                timeSheet.get("time")[len(timeSheet.get("time")) - 1] = tempTime.copy()
+            else:
+                timeSheet.get("time").append(tempTime)
+            tempDate += timedelta(days=1)
 
 #* App Title
 header = customtkinter.CTkLabel(master=root_tk, text="Time Sheet", text_font=("Roboto Medium", -24))
@@ -322,7 +353,7 @@ def clock_out():
 #! ===================================================================
 def end_period():
     os.mkdir("./Sheets")
-    payPeriod = timeSheet.get("time")[0].get("date") + " - " + datetime.now().strftime("%m-%d-%Y")
+    payPeriod = (datetime.today() - timedelta(days=14)).strftime("%m-%d-%Y") + " - " + datetime.now().strftime("%m-%d-%Y")
     payPeriodObj = timeSheet
     payPeriodObj["userInfo"] = userData
     print(payPeriodObj)
