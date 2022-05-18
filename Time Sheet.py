@@ -161,20 +161,18 @@ def calculateHours():
     todayLunchIn = datetime.strptime(dayTimeSheet.get("lunchIn"), "%I:%M%p")
     todayOut = datetime.strptime(dayTimeSheet.get("clockOut"), "%I:%M%p")
     
-    # day = calendar.day_name[datetime.today().weekday()]
-    # day = calendar.day_name[4]
     hour1 = (((todayLunchOut - todayIn).seconds)/60)/60
     hour2 = (((todayOut - todayLunchIn).seconds)/60)/60
     regularHours = hour1 + hour2
     overtimeHours = 0
     
     totalHours = 0
-    # day = datetime.today().weekday()
+    day = datetime.today().weekday()
     # day = 0 #Monday
     # day = 1 #Tuesday
     # day = 2 #Wednesday
     # day = 3 #Thursday
-    day = 4 #Friday
+    # day = 4 #Friday
     for index in range(day + 1):
         day = timeSheet.get("time")[len(timeSheet.get("time")) - 1 - index]
         try:
@@ -210,8 +208,8 @@ def setTimestamp(set):
     if(set == 0):
         dayTimeSheet.update({"date": datetime.now().strftime("%m-%d-%Y")})
         dayTimeSheet.update({"project": project.get()})
-        # dayTimeSheet.update({"clockIn": datetime.now().strftime("%I:%M %p")})
-        dayTimeSheet.update({"clockIn": "09:00AM"})
+        dayTimeSheet.update({"clockIn": datetime.now().strftime("%I:%M %p")})
+        # dayTimeSheet.update({"clockIn": "09:00AM"})
         if(newSheet):
             setUserDayTime("update")
             newSheet = False
@@ -221,16 +219,16 @@ def setTimestamp(set):
             dayTimeSheet.update({"clockOut": ""})
             setUserDayTime("add")
     elif(set == 1):
-        # dayTimeSheet.update({"lunchOut": datetime.now().strftime("%I:%M %p")})
-        dayTimeSheet.update({"lunchOut": "01:00PM"})
+        dayTimeSheet.update({"lunchOut": datetime.now().strftime("%I:%M %p")})
+        # dayTimeSheet.update({"lunchOut": "01:00PM"})
         setUserDayTime("update")
     elif(set == 2):
-        # dayTimeSheet.update({"lunchIn": datetime.now().strftime("%I:%M %p")})
-        dayTimeSheet.update({"lunchIn": "02:00PM"})
+        dayTimeSheet.update({"lunchIn": datetime.now().strftime("%I:%M %p")})
+        # dayTimeSheet.update({"lunchIn": "02:00PM"})
         setUserDayTime("update")
     else:
-        # dayTimeSheet.update({"clockOut": datetime.now().strftime("%I:%M %p")})
-        dayTimeSheet.update({"clockOut": "09:00PM"})
+        dayTimeSheet.update({"clockOut": datetime.now().strftime("%I:%M %p")})
+        # dayTimeSheet.update({"clockOut": "09:00PM"})
         calculateHours()
         setUserDayTime("update")
 
@@ -242,9 +240,7 @@ def setTimestamp(set):
 #! ===================================================================
 def checkDates():
     currentDate = datetime.now()
-    currentDay = datetime.now().strftime("%d")
     weekDay = calendar.day_name[datetime.today().weekday()]
-    # weekDay = calendar.day_name[0]
     lastClockedDate = timeSheet.get("time")[len(timeSheet.get("time")) - 1].get("date").split("-")
     if(lastClockedDate[0] != ""):
         lastDate = datetime(int(lastClockedDate[2]), int(lastClockedDate[0]), int(lastClockedDate[1]))
