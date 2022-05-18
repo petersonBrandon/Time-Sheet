@@ -160,16 +160,18 @@ def calculateHours():
     todayLunchIn = datetime.strptime(dayTimeSheet.get("lunchIn"), "%I:%M %p")
     todayOut = datetime.strptime(dayTimeSheet.get("clockOut"), "%I:%M %p")
     
-    day = calendar.day_name[datetime.today().weekday()]
-    # day = calendar.day_name[4]
+    # day = calendar.day_name[datetime.today().weekday()]
+    day = calendar.day_name[4]
     hour1 = (((todayLunchOut - todayIn).seconds)/60)/60
     hour2 = (((todayOut - todayLunchIn).seconds)/60)/60
     regularHours = hour1 + hour2
     regularHours = '{0:.1g}'.format(regularHours)
+    overtimeHours = 0
     
     if(day == "Friday"):
         totalHours = 0
-        for day in timeSheet.get("time"):
+        for index in range(5):
+            day = timeSheet.get("time")[len(timeSheet.get("time")) - 1 - index]
             dayIn = datetime.strptime(day.get("clockIn"), "%I:%M %p")
             dayLunchOut = datetime.strptime(day.get("lunchOut"), "%I:%M %p")
             dayLunchIn = datetime.strptime(day.get("lunchIn"), "%I:%M %p")
@@ -181,11 +183,13 @@ def calculateHours():
             hours = '{0:.1g}'.format(hours)
             totalHours = totalHours + float(hours)
         if(totalHours > 40):
-            regularHours = "8"
             overtimeHours = totalHours - 40
-            dayTimeSheet.update({"overtimeHrs": str(overtimeHours)})
-        
-    dayTimeSheet.update({"regularHrs": regularHours})
+            regularHours = float(regularHours) - overtimeHours
+
+    if(overtimeHours == 0):
+        overtimeHours = ""
+    dayTimeSheet.update({"overtimeHrs": str(overtimeHours)})    
+    dayTimeSheet.update({"regularHrs": str(regularHours)})
 
 
 #! ========================= SET TIMESTAMP ===========================
@@ -197,8 +201,8 @@ def setTimestamp(set):
     if(set == 0):
         dayTimeSheet.update({"date": datetime.now().strftime("%m-%d-%Y")})
         dayTimeSheet.update({"project": project.get()})
-        dayTimeSheet.update({"clockIn": datetime.now().strftime("%I:%M %p")})
-        # dayTimeSheet.update({"clockIn": "09:00 AM"})
+        # dayTimeSheet.update({"clockIn": datetime.now().strftime("%I:%M %p")})
+        dayTimeSheet.update({"clockIn": "09:00 AM"})
         if(newSheet):
             setUserDayTime("update")
             newSheet = False
@@ -208,16 +212,16 @@ def setTimestamp(set):
             dayTimeSheet.update({"clockOut": ""})
             setUserDayTime("add")
     elif(set == 1):
-        dayTimeSheet.update({"lunchOut": datetime.now().strftime("%I:%M %p")})
-        # dayTimeSheet.update({"lunchOut": "01:00 PM"})
+        # dayTimeSheet.update({"lunchOut": datetime.now().strftime("%I:%M %p")})
+        dayTimeSheet.update({"lunchOut": "01:00 PM"})
         setUserDayTime("update")
     elif(set == 2):
-        dayTimeSheet.update({"lunchIn": datetime.now().strftime("%I:%M %p")})
-        # dayTimeSheet.update({"lunchIn": "02:00 PM"})
+        # dayTimeSheet.update({"lunchIn": datetime.now().strftime("%I:%M %p")})
+        dayTimeSheet.update({"lunchIn": "02:00 PM"})
         setUserDayTime("update")
     else:
-        dayTimeSheet.update({"clockOut": datetime.now().strftime("%I:%M %p")})
-        # dayTimeSheet.update({"clockOut": "07:00 PM"})
+        # dayTimeSheet.update({"clockOut": datetime.now().strftime("%I:%M %p")})
+        dayTimeSheet.update({"clockOut": "07:00 PM"})
         calculateHours()
         setUserDayTime("update")
 
@@ -239,16 +243,18 @@ def checkDates():
         newDate = datetime(int(lastClockedDate[2]), int(lastClockedDate[0]), int(lastClockedDate[1]))
         for i in range(timeSpan - 1):
             newDate += timedelta(days=1)
-            tempTime = {
-                "date": newDate.strftime("%m-%d-%Y"),
-                "clockIn": "",
-                "lunchOut": "",
-                "lunchIn": "",
-                "clockOut": "",
-                "regularHrs": "",
-                "overtimeHrs": ""
-            }
-            timeSheet.get("time").append(tempTime)
+            day = calendar.day_name[newDate.weekday()]
+            if(day != "Saturday" and day != "Sunday"):
+                tempTime = {
+                    "date": newDate.strftime("%m-%d-%Y"),
+                    "clockIn": "",
+                    "lunchOut": "",
+                    "lunchIn": "",
+                    "clockOut": "",
+                    "regularHrs": "",
+                    "overtimeHrs": ""
+                }
+                timeSheet.get("time").append(tempTime)
 
 #* App Title
 header = customtkinter.CTkLabel(master=root_tk, text="Time Sheet", text_font=("Roboto Medium", -24))
