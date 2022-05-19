@@ -198,8 +198,16 @@ def calculateHours():
         overtimeHours = ""
     if(regularHours < 0):
         regularHours = ""
-    dayTimeSheet.update({"overtimeHrs": str(overtimeHours)})    
-    dayTimeSheet.update({"regularHrs": str(regularHours)})
+
+    if(overtimeHours != 0):
+        dayTimeSheet.update({"overtimeHrs": "{:.1f}".format(overtimeHours)})
+    else:
+        dayTimeSheet.update({"overtimeHrs": str(overtimeHours)})
+    
+    if(regularHours != 0):  
+        dayTimeSheet.update({"regularHrs": "{:.1f}".format(regularHours)})
+    else:
+        dayTimeSheet.update({"regularHrs": str(regularHours)})
 
 
 #! ========================= SET TIMESTAMP ===========================
