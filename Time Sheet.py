@@ -42,7 +42,7 @@ customtkinter.set_appearance_mode("light")  # Modes: system (default), light, da
 customtkinter.set_default_color_theme("blue")  # Themes: blue (default), dark-blue, green
 
 root_tk = customtkinter.CTk()  # create CTk window like you do with the Tk window
-root_tk.geometry("500x400") # Set window dimenstions
+root_tk.geometry("600x400") # Set window dimenstions
 root_tk.resizable(width=False, height=False) # Prevent window resizing
 root_tk.title("Time Sheet") # Set window title
 
@@ -59,6 +59,13 @@ timeDataFile = "timeData.json"
 userData = "0"
 noData = True
 newSheet = False
+
+yRef = 0.4
+xRef = 0.2
+
+buttonHorizontalOffset = 0.45
+labelHorizontalOffset = 0.26
+breakHorizontalOffset = 0.22
 
 #! ====================== PRE-LOAD USER DATA =========================
 #! Description:
@@ -304,24 +311,22 @@ header.place(relx=0.5, rely=0.15, anchor=tkinter.CENTER)
 #! Description:
 #!      Display the timestamp for the punch button clicked.
 #! ===================================================================
-yLabelRef = 0.4
-xLabelRef = 0.56
 
 def getClockInLabel():
     clockInLabel = customtkinter.CTkLabel(master=root_tk, text=dayTimeSheet.get("clockIn"), width=50, text_font=("Roboto Medium", -15))
-    clockInLabel.place(relx=xLabelRef, rely=yLabelRef, anchor=tkinter.CENTER)
+    clockInLabel.place(relx=xRef + labelHorizontalOffset, rely=yRef, anchor=tkinter.CENTER)
 
 def getLunchOutLabel():
     lunchOutLabel = customtkinter.CTkLabel(master=root_tk, text=dayTimeSheet.get("lunchOut"), width=50, text_font=("Roboto Medium", -15))
-    lunchOutLabel.place(relx=xLabelRef, rely=yLabelRef + 0.1, anchor=tkinter.CENTER)
+    lunchOutLabel.place(relx=xRef + labelHorizontalOffset, rely=yRef + 0.1, anchor=tkinter.CENTER)
 
 def getLunchInLabel():
     lunchInLabel = customtkinter.CTkLabel(master=root_tk, text=dayTimeSheet.get("lunchIn"), width=50, text_font=("Roboto Medium", -15))
-    lunchInLabel.place(relx=xLabelRef, rely=yLabelRef + 0.2, anchor=tkinter.CENTER)
+    lunchInLabel.place(relx=xRef + labelHorizontalOffset, rely=yRef + 0.2, anchor=tkinter.CENTER)
 
 def getClockOutLabel():
     clockOutLabel = customtkinter.CTkLabel(master=root_tk, text=dayTimeSheet.get("clockOut"), width=50, text_font=("Roboto Medium", -15))
-    clockOutLabel.place(relx=xLabelRef, rely=yLabelRef + 0.3, anchor=tkinter.CENTER)
+    clockOutLabel.place(relx=xRef + labelHorizontalOffset, rely=yRef + 0.3, anchor=tkinter.CENTER)
 
 #! ======================== BUTTON METHODS ===========================
 #! Description:
@@ -353,6 +358,12 @@ def clock_out():
     clockOut.configure(state=tkinter.DISABLED, fg_color="#6C6C6C")
     setTimestamp(3)
     getClockOutLabel()
+
+def break_out():
+    print("test")
+
+def break_in():
+    print("test")
 
 #! ======================== END PAY PERIOD ===========================
 #! Description:
@@ -390,24 +401,26 @@ def end_period():
 #! Description:
 #!      The button elements seen on the window
 #! ===================================================================
-#* Button global offset
-yButtonRef = 0.4
-xButtonRef = 0.8
-
 clockIn = customtkinter.CTkButton(master=root_tk, text="Clock In", command=clock_in)
-clockIn.place(relx=xButtonRef, rely=yButtonRef, anchor=tkinter.CENTER)
+clockIn.place(relx=xRef + buttonHorizontalOffset, rely=yRef, anchor=tkinter.CENTER)
 
 lunchOut = customtkinter.CTkButton(master=root_tk, text="Lunch Out", state=tkinter.DISABLED, fg_color="#6C6C6C", command=lunch_out)
-lunchOut.place(relx=xButtonRef, rely=yButtonRef + 0.1, anchor=tkinter.CENTER)
+lunchOut.place(relx=xRef + buttonHorizontalOffset, rely=yRef + 0.1, anchor=tkinter.CENTER)
 
 lunchIn = customtkinter.CTkButton(master=root_tk, text="Lunch In", state=tkinter.DISABLED, fg_color="#6C6C6C", command=lunch_in)
-lunchIn.place(relx=xButtonRef, rely=yButtonRef + 0.2, anchor=tkinter.CENTER)
+lunchIn.place(relx=xRef + buttonHorizontalOffset, rely=yRef + 0.2, anchor=tkinter.CENTER)
 
 clockOut = customtkinter.CTkButton(master=root_tk, text="Clock Out", state=tkinter.DISABLED, fg_color="#6C6C6C", command=clock_out)
-clockOut.place(relx=xButtonRef, rely=yButtonRef + 0.3, anchor=tkinter.CENTER)
+clockOut.place(relx=xRef + buttonHorizontalOffset, rely=yRef + 0.3, anchor=tkinter.CENTER)
+
+breakOut = customtkinter.CTkButton(master=root_tk, text="Break Out", command=break_out)
+breakOut.place(relx=xRef + buttonHorizontalOffset + breakHorizontalOffset, rely=yRef + 0.1, anchor=tkinter.CENTER)
+
+breakIn = customtkinter.CTkButton(master=root_tk, text="Break In", command=break_in)
+breakIn.place(relx=xRef + buttonHorizontalOffset + breakHorizontalOffset, rely=yRef + 0.2, anchor=tkinter.CENTER)
 
 endPeriod = customtkinter.CTkButton(master=root_tk, text="End Pay Peroid", fg_color="#D31515", hover_color="#950F0F", command=end_period)
-endPeriod.place(relx=xButtonRef, rely=yButtonRef + 0.5, anchor=tkinter.CENTER)
+endPeriod.place(relx=xRef + buttonHorizontalOffset, rely=yRef + 0.5, anchor=tkinter.CENTER)
 
 #! ======================= BUTTON PRECONFIG ==========================
 #! Description:
@@ -493,28 +506,25 @@ if(preferences.get("darkEnabled")):
 #! Description:
 #!      All the textbox elements displayed on screen.
 #! ===================================================================
-#* Text Input global offset
-yInputRef = 0.4
-xInputRef = 0.25
 
 #* Name text input element
 name = customtkinter.CTkEntry(master=root_tk, placeholder_text="Name", width=200)
-name.place(relx=xInputRef, rely=yInputRef, anchor=tkinter.CENTER)
+name.place(relx=xRef, rely=yRef, anchor=tkinter.CENTER)
 name.insert(0, userData.get("name"))
 
 #* Supervisor text input element
 supervisor = customtkinter.CTkEntry(master=root_tk, placeholder_text="Supervisor", width=200)
-supervisor.place(relx=xInputRef, rely=yInputRef + 0.1, anchor=tkinter.CENTER)
+supervisor.place(relx=xRef, rely=yRef + 0.1, anchor=tkinter.CENTER)
 supervisor.insert(0, userData.get("supervisor"))
 
 #* Project text input element
 project = customtkinter.CTkEntry(master=root_tk, placeholder_text="Project", width=200)
-project.place(relx=xInputRef, rely=yInputRef + 0.2, anchor=tkinter.CENTER)
+project.place(relx=xRef, rely=yRef + 0.2, anchor=tkinter.CENTER)
 project.insert(0, userData.get("project"))
 
 #* Initials text input element
 initials = customtkinter.CTkEntry(master=root_tk, placeholder_text="Initials", width=200)
-initials.place(relx=xInputRef, rely=yInputRef + 0.3, anchor=tkinter.CENTER)
+initials.place(relx=xRef, rely=yRef + 0.3, anchor=tkinter.CENTER)
 initials.insert(0, userData.get("initials"))
 
 #! ======================== LABELS FOR INPUTS ========================
