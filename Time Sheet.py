@@ -50,15 +50,22 @@ root_tk.title("Time Sheet") # Set window title
 icon = "public\clock-icon.ico"
 root_tk.iconbitmap(icon)
 
+#! ===================== ROCKET CHAT API SETUP =======================
+#! Description:
+#!      Sets up the Rocket Chat API.
+#! ===================================================================
+apiInfo = open("apiInfo.json")
+apiInfo = json.load(apiInfo)
+apiSettings = {'token': apiInfo.get("token"), 'user_id': apiInfo.get("userId"), 'domain': apiInfo.get("domain")}
+api = RocketChatAPI(settings=apiSettings)
+user = api.get_my_info()
+apiSettings['username'] = user.get('username')
+api.settings=apiSettings
+
 #! ======================== GLOBAL VARIABLES =========================
 #! Description:
 #!      Sets up over theme and window configuration.
 #! ===================================================================
-apiInfo = open("apiInfo.json")
-apiInfo = json.load(apiInfo)
-api = RocketChatAPI(settings={'token': apiInfo.get("token"), 'user_id': apiInfo.get("userId"), 'username': 'brandon.peterson',
-                              'domain': apiInfo.get("domain")})
-
 userDataFile = "userData.json"
 timeDataFile = "timeData.json"
 
