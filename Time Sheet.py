@@ -32,6 +32,7 @@ import customtkinter
 from datetime import datetime, timedelta
 import calendar
 import subprocess
+from rocketchat.api import RocketChatAPI
 
 
 #! ======================== MAIN WINDOW SETUP ========================
@@ -53,6 +54,11 @@ root_tk.iconbitmap(icon)
 #! Description:
 #!      Sets up over theme and window configuration.
 #! ===================================================================
+apiInfo = open("apiInfo.json")
+apiInfo = json.load(apiInfo)
+api = RocketChatAPI(settings={'token': apiInfo.get("token"), 'user_id': apiInfo.get("userId"), 'username': 'brandon.peterson',
+                              'domain': apiInfo.get("domain")})
+
 userDataFile = "userData.json"
 timeDataFile = "timeData.json"
 
@@ -66,6 +72,8 @@ xRef = 0.2
 buttonHorizontalOffset = 0.45
 labelHorizontalOffset = 0.26
 breakHorizontalOffset = 0.22
+
+debug = True
 
 #! ====================== PRE-LOAD USER DATA =========================
 #! Description:
@@ -206,16 +214,19 @@ def calculateHours():
     if(regularHours < 0):
         regularHours = ""
 
-    if(overtimeHours != 0):
+    if(overtimeHours != 0 and overtimeHours != ""):
         dayTimeSheet.update({"overtimeHrs": "{:.1f}".format(overtimeHours)})
     else:
         dayTimeSheet.update({"overtimeHrs": str(overtimeHours)})
     
-    if(regularHours != 0):  
+    if(regularHours != 0 and regularHours != ""):  
         dayTimeSheet.update({"regularHrs": "{:.1f}".format(regularHours)})
     else:
         dayTimeSheet.update({"regularHrs": str(regularHours)})
 
+def checkEndOfPeriod():
+    if(len(timeSheet.get("time")) == 10): 
+        endPeriod.configure(state=tkinter.NORMAL, fg_color="#D31515", hover_color="#950F0F")
 
 #! ========================= SET TIMESTAMP ===========================
 #! Description:
@@ -227,7 +238,8 @@ def setTimestamp(set):
         dayTimeSheet.update({"date": datetime.now().strftime("%m-%d-%Y")})
         dayTimeSheet.update({"project": project.get()})
         dayTimeSheet.update({"clockIn": datetime.now().strftime("%I:%M%p")})
-        # dayTimeSheet.update({"clockIn": "09:00AM"})
+        if(debug):
+            dayTimeSheet.update({"clockIn": "09:00AM"})
         if(newSheet):
             setUserDayTime("update")
             newSheet = False
@@ -238,15 +250,18 @@ def setTimestamp(set):
             setUserDayTime("add")
     elif(set == 1):
         dayTimeSheet.update({"lunchOut": datetime.now().strftime("%I:%M%p")})
-        # dayTimeSheet.update({"lunchOut": "01:00PM"})
+        if(debug):
+            dayTimeSheet.update({"lunchOut": "01:00PM"})
         setUserDayTime("update")
     elif(set == 2):
         dayTimeSheet.update({"lunchIn": datetime.now().strftime("%I:%M%p")})
-        # dayTimeSheet.update({"lunchIn": "02:00PM"})
+        if(debug):
+            dayTimeSheet.update({"lunchIn": "02:00PM"})
         setUserDayTime("update")
     else:
         dayTimeSheet.update({"clockOut": datetime.now().strftime("%I:%M%p")})
-        # dayTimeSheet.update({"clockOut": "09:00PM"})
+        if(debug):
+            dayTimeSheet.update({"clockOut": "06:00PM"})
         calculateHours()
         setUserDayTime("update")
 
@@ -358,9 +373,11 @@ def clock_out():
     clockOut.configure(state=tkinter.DISABLED, fg_color="#6C6C6C")
     setTimestamp(3)
     getClockOutLabel()
+    checkEndOfPeriod()
 
 def break_out():
-    print("test")
+    print(api.get_im_rooms())
+    api.send_message('Test message', 'WGKhvZcSA9g6rD2yfxsbCjA9PDJZhLkqto')
 
 def break_in():
     print("test")
@@ -419,7 +436,7 @@ breakOut.place(relx=xRef + buttonHorizontalOffset + breakHorizontalOffset, rely=
 breakIn = customtkinter.CTkButton(master=root_tk, text="Break In", command=break_in)
 breakIn.place(relx=xRef + buttonHorizontalOffset + breakHorizontalOffset, rely=yRef + 0.2, anchor=tkinter.CENTER)
 
-endPeriod = customtkinter.CTkButton(master=root_tk, text="End Pay Peroid", fg_color="#D31515", hover_color="#950F0F", command=end_period)
+endPeriod = customtkinter.CTkButton(master=root_tk, text="End Pay Peroid", state=tkinter.DISABLED, fg_color="#6C6C6C", command=end_period)
 endPeriod.place(relx=xRef + buttonHorizontalOffset, rely=yRef + 0.5, anchor=tkinter.CENTER)
 
 #! ======================= BUTTON PRECONFIG ==========================
