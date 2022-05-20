@@ -95,6 +95,12 @@ btnColor01 = "#1c94cf"
 endPeriodBtnColor = "#D31515"
 endPeriodBtnHoverColor = "#950F0F"
 
+
+#! ========================= SAVE TEMP DATA ==========================
+#! Description:
+#!      Saves temp data passed to it for any data that needs to 
+#!      persist if the application is closed or crashes.
+#! ===================================================================
 def saveTempData(onBreak):
     defaultData = { 
         "onBreak": onBreak
@@ -104,6 +110,11 @@ def saveTempData(onBreak):
     jsonFile.write(jsonString)
     jsonFile.close()
 
+#! =================== TEMP DATA INITIAL SETUP =======================
+#! Description:
+#!      Initializes the temp data file and preloads the initial
+#!      data.
+#! ===================================================================
 tempData = ""
 tempDataMissing = True
 while(tempDataMissing):
