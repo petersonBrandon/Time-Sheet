@@ -224,6 +224,11 @@ def calculateHours():
     else:
         dayTimeSheet.update({"regularHrs": str(regularHours)})
 
+#! ===================== CHECK END OF PERIOD =========================
+#! Description:
+#!      Checks to see if it is the last day of the pay period. If it
+#!      is, it will enable the endPeriod button.
+#! ===================================================================
 def checkEndOfPeriod():
     if(len(timeSheet.get("time")) == 10): 
         endPeriod.configure(state=tkinter.NORMAL, fg_color="#D31515", hover_color="#950F0F")
