@@ -62,6 +62,13 @@ user = api.get_my_info()
 apiSettings['username'] = user.get('username')
 api.settings=apiSettings
 
+rocketchat_rooms = {}
+rooms = api.get_im_rooms()
+for x in rooms:
+    rocketchat_rooms[x['username']] = x['id']
+
+# print(rocketchat_rooms['attendance-bot'])
+
 #! ======================== GLOBAL VARIABLES =========================
 #! Description:
 #!      Sets up over theme and window configuration.
@@ -81,6 +88,32 @@ labelHorizontalOffset = 0.26
 breakHorizontalOffset = 0.22
 
 debug = True
+
+btnDisabledColor = "#6C6C6C"
+btnColor01 = "#1c94cf"
+
+endPeriodBtnColor = "#D31515"
+endPeriodBtnHoverColor = "#950F0F"
+
+def saveTempData(onBreak):
+    defaultData = { 
+        "onBreak": onBreak
+    }
+    jsonString = json.dumps(defaultData)
+    jsonFile = open("temp.json", "w")
+    jsonFile.write(jsonString)
+    jsonFile.close()
+
+tempData = ""
+tempDataMissing = True
+while(tempDataMissing):
+    try:
+        tempDataFile = open("temp.json")
+        tempData = json.load(tempDataFile)
+        tempDataMissing = False
+    except:
+        saveTempData(False)
+        preferencesMissing = True
 
 #! ====================== PRE-LOAD USER DATA =========================
 #! Description:
@@ -218,15 +251,15 @@ def calculateHours():
 
     if(overtimeHours == 0):
         overtimeHours = ""
-    if(regularHours < 0):
+    if(regularHours <= 0):
         regularHours = ""
 
-    if(overtimeHours != 0 and overtimeHours != ""):
+    if(overtimeHours != ""):
         dayTimeSheet.update({"overtimeHrs": "{:.1f}".format(overtimeHours)})
     else:
         dayTimeSheet.update({"overtimeHrs": str(overtimeHours)})
     
-    if(regularHours != 0 and regularHours != ""):  
+    if(regularHours != ""):  
         dayTimeSheet.update({"regularHrs": "{:.1f}".format(regularHours)})
     else:
         dayTimeSheet.update({"regularHrs": str(regularHours)})
@@ -238,7 +271,7 @@ def calculateHours():
 #! ===================================================================
 def checkEndOfPeriod():
     if(len(timeSheet.get("time")) == 10): 
-        endPeriod.configure(state=tkinter.NORMAL, fg_color="#D31515", hover_color="#950F0F")
+        endPeriod.configure(state=tkinter.NORMAL, fg_color=endPeriodBtnColor, hover_color=endPeriodBtnHoverColor)
 
 #! ========================= SET TIMESTAMP ===========================
 #! Description:
@@ -273,7 +306,7 @@ def setTimestamp(set):
     else:
         dayTimeSheet.update({"clockOut": datetime.now().strftime("%I:%M%p")})
         if(debug):
-            dayTimeSheet.update({"clockOut": "06:00PM"})
+            dayTimeSheet.update({"clockOut": "09:00PM"})
         calculateHours()
         setUserDayTime("update")
 
@@ -361,38 +394,54 @@ def getClockOutLabel():
 #!      lunch out button functions.
 #! ===================================================================
 def clock_in():
-    clockIn.configure(state=tkinter.DISABLED, fg_color="#6C6C6C")
-    lunchOut.configure(state=tkinter.NORMAL, fg_color="#1c94cf")
-    clockOut.configure(state=tkinter.NORMAL, fg_color="#1c94cf")
+    clockIn.configure(state=tkinter.DISABLED, fg_color=btnDisabledColor)
+    lunchOut.configure(state=tkinter.NORMAL, fg_color=btnColor01)
+    clockOut.configure(state=tkinter.NORMAL, fg_color=btnColor01)
+    breakOut.configure(state=tkinter.NORMAL, fg_color=btnColor01)
     setUserData()
     checkDates()
     setTimestamp(0)
     getClockInLabel()
 
 def lunch_out():
-    lunchOut.configure(state=tkinter.DISABLED, fg_color="#6C6C6C")
-    lunchIn.configure(state=tkinter.NORMAL, fg_color="#1c94cf")
+    lunchOut.configure(state=tkinter.DISABLED, fg_color=btnDisabledColor)
+    clockOut.configure(state=tkinter.DISABLED, fg_color=btnDisabledColor)
+    breakOut.configure(state=tkinter.DISABLED, fg_color=btnDisabledColor)
+    lunchIn.configure(state=tkinter.NORMAL, fg_color=btnColor01)
     setTimestamp(1)
     getLunchOutLabel()
 
 def lunch_in():
-    lunchIn.configure(state=tkinter.DISABLED, fg_color="#6C6C6C")
+    lunchIn.configure(state=tkinter.DISABLED, fg_color=btnDisabledColor)
+    breakOut.configure(state=tkinter.NORMAL, fg_color=btnColor01)
+    clockOut.configure(state=tkinter.NORMAL, fg_color=btnColor01)
     setTimestamp(2)
     getLunchInLabel()
 
 def clock_out():
-    clockIn.configure(state=tkinter.NORMAL, fg_color="#1c94cf")
-    clockOut.configure(state=tkinter.DISABLED, fg_color="#6C6C6C")
+    clockIn.configure(state=tkinter.NORMAL, fg_color=btnColor01)
+    clockOut.configure(state=tkinter.DISABLED, fg_color=btnDisabledColor)
+    breakOut.configure(state=tkinter.DISABLED, fg_color=btnDisabledColor)
     setTimestamp(3)
     getClockOutLabel()
     checkEndOfPeriod()
 
 def break_out():
-    print(api.get_im_rooms())
-    api.send_message('Test message', 'WGKhvZcSA9g6rD2yfxsbCjA9PDJZhLkqto')
+    breakOut.configure(state=tkinter.DISABLED, fg_color=btnDisabledColor)
+    lunchOut.configure(state=tkinter.DISABLED, fg_color=btnDisabledColor)
+    clockOut.configure(state=tkinter.DISABLED, fg_color=btnDisabledColor)
+    lunchIn.configure(state=tkinter.DISABLED, fg_color=btnDisabledColor)
+    breakIn.configure(state=tkinter.NORMAL, fg_color=btnColor01)
+    saveTempData(True)
+    # api.send_message('Test message', rocketchat_rooms['jordan.mcgillivray'])
 
 def break_in():
-    print("test")
+    breakOut.configure(state=tkinter.NORMAL, fg_color=btnColor01)
+    if(dayTimeSheet.get("lunchIn") == "" and datetime.today().date() == datetime.strptime(dayTimeSheet.get("date"), "%m-%d-%Y").date()):
+        lunchOut.configure(state=tkinter.NORMAL, fg_color=btnColor01)
+    clockOut.configure(state=tkinter.NORMAL, fg_color=btnColor01)
+    breakIn.configure(state=tkinter.DISABLED, fg_color=btnDisabledColor)
+    saveTempData(False)
 
 #! ======================== END PAY PERIOD ===========================
 #! Description:
@@ -433,22 +482,22 @@ def end_period():
 clockIn = customtkinter.CTkButton(master=root_tk, text="Clock In", command=clock_in)
 clockIn.place(relx=xRef + buttonHorizontalOffset, rely=yRef, anchor=tkinter.CENTER)
 
-lunchOut = customtkinter.CTkButton(master=root_tk, text="Lunch Out", state=tkinter.DISABLED, fg_color="#6C6C6C", command=lunch_out)
+lunchOut = customtkinter.CTkButton(master=root_tk, text="Lunch Out", state=tkinter.DISABLED, fg_color=btnDisabledColor, command=lunch_out)
 lunchOut.place(relx=xRef + buttonHorizontalOffset, rely=yRef + 0.1, anchor=tkinter.CENTER)
 
-lunchIn = customtkinter.CTkButton(master=root_tk, text="Lunch In", state=tkinter.DISABLED, fg_color="#6C6C6C", command=lunch_in)
+lunchIn = customtkinter.CTkButton(master=root_tk, text="Lunch In", state=tkinter.DISABLED, fg_color=btnDisabledColor, command=lunch_in)
 lunchIn.place(relx=xRef + buttonHorizontalOffset, rely=yRef + 0.2, anchor=tkinter.CENTER)
 
-clockOut = customtkinter.CTkButton(master=root_tk, text="Clock Out", state=tkinter.DISABLED, fg_color="#6C6C6C", command=clock_out)
+clockOut = customtkinter.CTkButton(master=root_tk, text="Clock Out", state=tkinter.DISABLED, fg_color=btnDisabledColor, command=clock_out)
 clockOut.place(relx=xRef + buttonHorizontalOffset, rely=yRef + 0.3, anchor=tkinter.CENTER)
 
-breakOut = customtkinter.CTkButton(master=root_tk, text="Break Out", command=break_out)
+breakOut = customtkinter.CTkButton(master=root_tk, text="Break Out", state=tkinter.DISABLED, fg_color=btnDisabledColor, command=break_out)
 breakOut.place(relx=xRef + buttonHorizontalOffset + breakHorizontalOffset, rely=yRef + 0.1, anchor=tkinter.CENTER)
 
-breakIn = customtkinter.CTkButton(master=root_tk, text="Break In", command=break_in)
+breakIn = customtkinter.CTkButton(master=root_tk, text="Break In", state=tkinter.DISABLED, fg_color=btnDisabledColor, command=break_in)
 breakIn.place(relx=xRef + buttonHorizontalOffset + breakHorizontalOffset, rely=yRef + 0.2, anchor=tkinter.CENTER)
 
-endPeriod = customtkinter.CTkButton(master=root_tk, text="End Pay Peroid", state=tkinter.DISABLED, fg_color="#6C6C6C", command=end_period)
+endPeriod = customtkinter.CTkButton(master=root_tk, text="End Pay Peroid", state=tkinter.DISABLED, fg_color=btnDisabledColor, command=end_period)
 endPeriod.place(relx=xRef + buttonHorizontalOffset, rely=yRef + 0.5, anchor=tkinter.CENTER)
 
 #! ======================= BUTTON PRECONFIG ==========================
@@ -457,29 +506,44 @@ endPeriod.place(relx=xRef + buttonHorizontalOffset, rely=yRef + 0.5, anchor=tkin
 #!      Designed to be a safety if the app crashes or is closed on
 #!      accident.
 #! ===================================================================
+clockedIn = False
 if(dayTimeSheet.get("clockIn") != "" and datetime.today().date() == datetime.strptime(dayTimeSheet.get("date"), "%m-%d-%Y").date()):
-    clockIn.configure(state=tkinter.DISABLED, fg_color="#6C6C6C")
-    lunchOut.configure(state=tkinter.NORMAL,fg_color="#1c94cf")
-    clockOut.configure(state=tkinter.NORMAL, fg_color="#1c94cf")
+    clockIn.configure(state=tkinter.DISABLED, fg_color=btnDisabledColor)
+    lunchOut.configure(state=tkinter.NORMAL,fg_color=btnColor01)
+    clockOut.configure(state=tkinter.NORMAL, fg_color=btnColor01)
+    breakOut.configure(state=tkinter.NORMAL, fg_color=btnColor01)
+    clockedIn = True
     getClockInLabel()
 
 if(dayTimeSheet.get("lunchOut") != "" and datetime.today().date() == datetime.strptime(dayTimeSheet.get("date"), "%m-%d-%Y").date()):
-    clockIn.configure(state=tkinter.DISABLED, fg_color="#6C6C6C")
-    lunchOut.configure(state=tkinter.DISABLED, fg_color="#6C6C6C")
-    lunchIn.configure(state=tkinter.NORMAL, fg_color="#1c94cf")
+    clockIn.configure(state=tkinter.DISABLED, fg_color=btnDisabledColor)
+    lunchOut.configure(state=tkinter.DISABLED, fg_color=btnDisabledColor)
+    lunchIn.configure(state=tkinter.NORMAL, fg_color=btnColor01)
+    clockOut.configure(state=tkinter.DISABLED, fg_color=btnDisabledColor)
+    breakOut.configure(state=tkinter.DISABLED, fg_color=btnDisabledColor)
     getLunchOutLabel()
 
 if(dayTimeSheet.get("lunchIn") != "" and datetime.today().date() == datetime.strptime(dayTimeSheet.get("date"), "%m-%d-%Y").date()):
-    clockOut.configure(state=tkinter.NORMAL, fg_color="#1c94cf")
-    clockIn.configure(state=tkinter.DISABLED, fg_color="#6C6C6C")
-    lunchOut.configure(state=tkinter.DISABLED, fg_color="#6C6C6C")
-    lunchIn.configure(state=tkinter.DISABLED, fg_color="#6C6C6C")
+    clockOut.configure(state=tkinter.NORMAL, fg_color=btnColor01)
+    breakOut.configure(state=tkinter.NORMAL, fg_color=btnColor01)
+    clockIn.configure(state=tkinter.DISABLED, fg_color=btnDisabledColor)
+    lunchOut.configure(state=tkinter.DISABLED, fg_color=btnDisabledColor)
+    lunchIn.configure(state=tkinter.DISABLED, fg_color=btnDisabledColor)
     getLunchInLabel()
 
 if(dayTimeSheet.get("clockOut") != "" and datetime.today().date() == datetime.strptime(dayTimeSheet.get("date"), "%m-%d-%Y").date()):
-    clockIn.configure(state=tkinter.NORMAL, fg_color="#1c94cf")
-    clockOut.configure(state=tkinter.DISABLED, fg_color="#6C6C6C")
+    clockIn.configure(state=tkinter.NORMAL, fg_color=btnColor01)
+    clockOut.configure(state=tkinter.DISABLED, fg_color=btnDisabledColor)
     getClockOutLabel()
+
+if(tempData.get("onBreak")):
+    breakOut.configure(state=tkinter.DISABLED, fg_color=btnDisabledColor)
+    lunchOut.configure(state=tkinter.DISABLED, fg_color=btnDisabledColor)
+    clockOut.configure(state=tkinter.DISABLED, fg_color=btnDisabledColor)
+    lunchIn.configure(state=tkinter.DISABLED, fg_color=btnDisabledColor)
+    breakIn.configure(state=tkinter.NORMAL, fg_color=btnColor01)
+
+checkEndOfPeriod()
 
 #! ======================== SAVE PREFERENCES =========================
 #! Description:
