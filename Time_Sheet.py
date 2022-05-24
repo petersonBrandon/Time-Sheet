@@ -29,11 +29,15 @@ import tkinter
 import json
 import os
 import customtkinter
-from datetime import datetime, timedelta
 import calendar
 import subprocess
+import pip
+from datetime import datetime, timedelta
 from rocketchat.api import RocketChatAPI
 
+# Install script dependencies automatically
+pip.main(["install", "customtkinter"])
+pip.main(["install", "rocket-python"])
 
 #! ======================== MAIN WINDOW SETUP ========================
 #! Description:
