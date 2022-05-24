@@ -187,7 +187,7 @@ breakHorizontalOffset = 0.22
 debug = False
 
 chatroom = "attendance-bot"
-messagingEnabled = False
+messagingEnabled = True
 
 btnDisabledColor = "#6C6C6C"
 btnColor01 = "#1c94cf"
