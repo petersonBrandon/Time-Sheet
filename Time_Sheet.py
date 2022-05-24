@@ -81,23 +81,34 @@ while(apiDataMissing):
         apiInfo = json.load(apiDataFile)
         apiDataMissing = False
         if(apiInfo['token'] != "" or apiInfo['userId'] != ''):
-            apiSettings = {'token': apiInfo.get("token"), 'user_id': apiInfo.get("userId"), 'domain': apiInfo.get("domain")}
-            api = RocketChatAPI(settings=apiSettings)
-            user = api.get_my_info()
-            apiSettings['username'] = user.get('username')
-            api.settings=apiSettings
+            try:
+                apiSettings = {'token': apiInfo.get("token"), 'user_id': apiInfo.get("userId"), 'domain': apiInfo.get("domain")}
+                api = RocketChatAPI(settings=apiSettings)
+                user = api.get_my_info()
+                apiSettings['username'] = user.get('username')
+                api.settings=apiSettings
 
-            rooms = api.get_im_rooms()
-            for x in rooms:
-                rocketchat_rooms[x['username']] = x['id']
+                rooms = api.get_im_rooms()
+                for x in rooms:
+                    rocketchat_rooms[x['username']] = x['id']
+                apiInfo.update({"isLoggedIn": True})
+                apiInfo.update({"correctCreds": True})
+            except:
+                apiInfo.update({"isLoggedIn": False})
+                apiInfo.update({"correctCreds": False})
+
+            saveApiData()
     except:
         apiInfo = {
             "token": "",
             "userId": "",
-            "domain": "https://digitaldreamforge.chat/"
+            "domain": "https://digitaldreamforge.chat/",
+            "isLoggedIn": False,
+            "correctCreds": True
         }
         saveApiData()
         apiDataMissing = True
+        apiIsLoggedIn = False
 
 #! =========================== CONNECT API ===========================
 #! Description:
@@ -115,6 +126,10 @@ def connect_api():
 #!      Creates the subwindow to put in API information.
 #! ===================================================================
 def connect_rocket_chat():
+    apiInfo.update({"correctCreds": True})
+    apiInfo.update({"token": ""})
+    apiInfo.update({"userId": ""})
+    saveApiData()
     apiWindow = customtkinter.CTkToplevel(root_tk)
     apiWindow.geometry(WINDOW_WIDTH + "x" + WINDOW_HEIGHT)
     apiWindow.resizable(width=False, height=False)
@@ -125,20 +140,20 @@ def connect_rocket_chat():
     apiTitle.place(relx=0.5, rely=0.1, anchor=tkinter.CENTER)
 
     apiStepsTitle = customtkinter.CTkLabel(master=apiWindow, text="Instructions:", text_font=("Roboto Medium", -16))
-    apiStepsTitle.place(relx=0.15, rely=0.25, anchor=tkinter.CENTER)
+    apiStepsTitle.place(relx=0.15, rely=0.2, anchor=tkinter.CENTER)
 
-    apiSteps = customtkinter.CTkLabel(master=apiWindow, text="1. Click your profile image in Rocket Chat.\n" +
-                                                             "2. Click the My Account button.\n" +
-                                                             "3. Click the Personal Access Tokens button.\n" +
-                                                             "4. Type in a title of your choice in the text box.\n" +
+    apiSteps = customtkinter.CTkLabel(master=apiWindow, text="1. Click your profile image in Rocket Chat.\n\n" +
+                                                             "2. Click the My Account button.\n\n" +
+                                                             "3. Click the Personal Access Tokens button.\n\n" +
+                                                             "4. Type in a title of your choice in the text box.\n\n" +
                                                              "5. Click the Ignore Two Factor Authentication\n" +
-                                                             "    checkbox so that is is checked.\n" +
-                                                             "6. Click the Add button.\n" +
-                                                             "7. Copy your UserId and paste it to the right.\n" +
-                                                             "8. Copy your Token and past it to the right.\n" + 
+                                                             "    checkbox so that is is checked.\n\n" +
+                                                             "6. Click the Add button.\n\n" +
+                                                             "7. Copy your UserId and paste it to the right.\n\n" +
+                                                             "8. Copy your Token and past it to the right.\n\n" + 
                                                              "9. Click Connect.",
                                                              justify=tkinter.LEFT)
-    apiSteps.place(relx=0.3, rely=0.5, anchor=tkinter.CENTER)
+    apiSteps.place(relx=0.3, rely=0.6, anchor=tkinter.CENTER)
 
     global userId
     userId = customtkinter.CTkEntry(master=apiWindow, placeholder_text="UserId", width=200)
@@ -172,7 +187,7 @@ breakHorizontalOffset = 0.22
 debug = False
 
 chatroom = "attendance-bot"
-messagingEnabled = True
+messagingEnabled = False
 
 btnDisabledColor = "#6C6C6C"
 btnColor01 = "#1c94cf"
@@ -186,11 +201,9 @@ endPeriodBtnHoverColor = "#950F0F"
 #!      Saves temp data passed to it for any data that needs to 
 #!      persist if the application is closed or crashes.
 #! ===================================================================
-def saveTempData(onBreak):
-    defaultData = { 
-        "onBreak": onBreak
-    }
-    jsonString = json.dumps(defaultData)
+tempData = {}
+def saveTempData():
+    jsonString = json.dumps(tempData)
     jsonFile = open("temp.json", "w")
     jsonFile.write(jsonString)
     jsonFile.close()
@@ -200,7 +213,6 @@ def saveTempData(onBreak):
 #!      Initializes the temp data file and preloads the initial
 #!      data.
 #! ===================================================================
-tempData = ""
 tempDataMissing = True
 while(tempDataMissing):
     try:
@@ -208,7 +220,11 @@ while(tempDataMissing):
         tempData = json.load(tempDataFile)
         tempDataMissing = False
     except:
-        saveTempData(False)
+        tempData = {
+            "onBreak": False,
+            "payPeriodStart" : ""
+        }
+        saveTempData()
         tempDataMissing = True
 
 #! ====================== PRE-LOAD USER DATA =========================
@@ -727,9 +743,12 @@ initials = customtkinter.CTkEntry(master=root_tk, placeholder_text="Initials", w
 initials.place(relx=xRef, rely=yRef + 0.3, anchor=tkinter.CENTER)
 initials.insert(0, userData.get("initials"))
 
-if(apiInfo['token'] == '' or apiInfo['userId'] == ''):
+if(not apiInfo['isLoggedIn']):
     frame = customtkinter.CTkFrame(master=root_tk, width=int(WINDOW_WIDTH), height=int(WINDOW_HEIGHT), corner_radius=0)
     frame.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
+    if(not apiInfo['correctCreds']):
+        errorMsg = customtkinter.CTkLabel(master=root_tk, text="Error: Token or UserID invalid.\n Please Try again.", bg_color="#2E2E2E", text_color=endPeriodBtnColor, text_font=("Roboto Medium", -15))
+        errorMsg.place(relx=0.5, rely=0.4, anchor=tkinter.CENTER)
     connectRC = customtkinter.CTkButton(master=root_tk, text="Connect Rocket Chat", bg_color="#2E2E2E",  command=connect_rocket_chat)
     connectRC.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
 
