@@ -195,6 +195,28 @@ btnColor01 = "#1c94cf"
 endPeriodBtnColor = "#D31515"
 endPeriodBtnHoverColor = "#950F0F"
 
+#! ====================== FIND PAY PERIOD START ======================
+#! Description:
+#!      Locates the start of the pay period.
+#! ===================================================================
+def findPayPeriodStart():
+    initial = datetime(2022, 5, 2)
+    today = datetime.today().strftime("%m-%d-%Y")
+    today = datetime.strptime(today, "%m-%d-%Y")
+    start = initial
+    startFound = False
+    while(not startFound):
+        newStart = initial + timedelta(days=14)
+        if(newStart == today):
+            start = newStart
+            startFound = True
+        elif(newStart > today):
+            start = initial
+            startFound = True
+        else:
+            initial = newStart
+
+    return start.strftime("%m-%d-%Y")
 
 #! ========================= SAVE TEMP DATA ==========================
 #! Description:
@@ -222,7 +244,7 @@ while(tempDataMissing):
     except:
         tempData = {
             "onBreak": False,
-            "payPeriodStart" : ""
+            "payPeriodStart" : findPayPeriodStart()
         }
         saveTempData()
         tempDataMissing = True
@@ -429,16 +451,21 @@ def setTimestamp(set):
 #!      then the dates in between are filled with blank timestamps.
 #! ===================================================================
 def checkDates():
+    tempData.update({'payPeriodStart': findPayPeriodStart()})
+    saveTempData()
+    payPeriodStart = datetime.strptime(tempData['payPeriodStart'], "%m-%d-%Y")
+    
     currentDate = datetime.now()
-    weekDay = calendar.day_name[datetime.today().weekday()]
-    lastClockedDate = timeSheet.get("time")[len(timeSheet.get("time")) - 1].get("date").split("-")
-    if(lastClockedDate[0] != ""):
-        lastDate = datetime(int(lastClockedDate[2]), int(lastClockedDate[0]), int(lastClockedDate[1]))
-    if(lastClockedDate[0] != "" and lastDate < currentDate):
+    lastClockedDate = timeSheet.get("time")[len(timeSheet.get("time")) - 1].get("date")
+    
+    if(lastClockedDate != ""):
+        lastDate = datetime.strptime(lastClockedDate, "%m-%d-%Y")
+    
+    if(lastClockedDate != "" and lastDate < currentDate and lastDate >= payPeriodStart):
         timeSpan = currentDate - lastDate
         timeSpan = timeSpan.days
-        newDate = datetime(int(lastClockedDate[2]), int(lastClockedDate[0]), int(lastClockedDate[1]))
-        for i in range(timeSpan - 1):
+        newDate = datetime.strptime(lastClockedDate, "%m-%d-%Y")
+        for i in range(timeSpan):
             newDate += timedelta(days=1)
             day = calendar.day_name[newDate.weekday()]
             if(day != "Saturday" and day != "Sunday"):
@@ -453,26 +480,30 @@ def checkDates():
                     "overtimeHrs": ""
                 }
                 timeSheet.get("time").append(tempTime)
-    elif(weekDay != "Monday"):
-        wd = datetime.today().weekday()
-        tempDate = datetime.today() - timedelta(days=wd)
-        for i in range(wd + 1):
-            day = calendar.day_name[tempDate.weekday()]
-            tempTime = {
-                "date": tempDate.strftime("%m-%d-%Y"),
-                "project" : "",
-                "clockIn": "",
-                "lunchOut": "",
-                "lunchIn": "",
-                "clockOut": "",
-                "regularHrs": "",
-                "overtimeHrs": ""
-            }
-            if(day == "Monday"):
-                timeSheet.get("time")[len(timeSheet.get("time")) - 1] = tempTime.copy()
-            else:
-                timeSheet.get("time").append(tempTime)
-            tempDate += timedelta(days=1)
+    
+    # Will be called if the time data is empty for the pay period
+    elif(lastClockedDate == ''):
+        timeSpan = currentDate - payPeriodStart
+        timeSpan = timeSpan.days
+        newDate = payPeriodStart
+        for i in range(timeSpan + 1):
+            day = calendar.day_name[newDate.weekday()]
+            if(day != "Saturday" and day != "Sunday"):
+                tempTime = {
+                    "date": newDate.strftime("%m-%d-%Y"),
+                    "project" : "",
+                    "clockIn": "",
+                    "lunchOut": "",
+                    "lunchIn": "",
+                    "clockOut": "",
+                    "regularHrs": "",
+                    "overtimeHrs": ""
+                }
+                if(i == 0):
+                    timeSheet.get("time")[len(timeSheet.get("time")) - 1] = tempTime.copy()
+                else:
+                    timeSheet.get("time").append(tempTime)
+            newDate += timedelta(days=1)
 
 #* App Title
 header = customtkinter.CTkLabel(master=root_tk, text="Time Sheet", text_font=("Roboto Medium", -24))
