@@ -153,7 +153,7 @@ def connect_rocket_chat():
 
 #! ======================== GLOBAL VARIABLES =========================
 #! Description:
-#!      Sets up over theme and window configuration.
+#!      Global Variables.
 #! ===================================================================
 userDataFile = "userData.json"
 timeDataFile = "timeData.json"
