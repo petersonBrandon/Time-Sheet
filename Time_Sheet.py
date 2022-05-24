@@ -42,32 +42,110 @@ from rocketchat.api import RocketChatAPI
 customtkinter.set_appearance_mode("light")  # Modes: system (default), light, dark
 customtkinter.set_default_color_theme("blue")  # Themes: blue (default), dark-blue, green
 
+WINDOW_WIDTH = "600"
+WINDOW_HEIGHT = "400"
+
 root_tk = customtkinter.CTk()  # create CTk window like you do with the Tk window
-root_tk.geometry("600x400") # Set window dimenstions
+root_tk.geometry(WINDOW_WIDTH + "x" + WINDOW_HEIGHT) # Set window dimenstions
 root_tk.resizable(width=False, height=False) # Prevent window resizing
 root_tk.title("Time Sheet") # Set window title
 
 icon = "public\clock-icon.ico"
 root_tk.iconbitmap(icon)
 
+def refreshWindow():
+    root_tk.destroy()
+    os.system('python Time_Sheet.py')
+
 #! ===================== ROCKET CHAT API SETUP =======================
 #! Description:
 #!      Sets up the Rocket Chat API.
 #! ===================================================================
-apiInfo = open("apiInfo.json")
-apiInfo = json.load(apiInfo)
-apiSettings = {'token': apiInfo.get("token"), 'user_id': apiInfo.get("userId"), 'domain': apiInfo.get("domain")}
-api = RocketChatAPI(settings=apiSettings)
-user = api.get_my_info()
-apiSettings['username'] = user.get('username')
-api.settings=apiSettings
-
+apiInfo = {}
+api = ""
 rocketchat_rooms = {}
-rooms = api.get_im_rooms()
-for x in rooms:
-    rocketchat_rooms[x['username']] = x['id']
+def saveApiData():
+    jsonString = json.dumps(apiInfo)
+    jsonFile = open("apiInfo.json", "w")
+    jsonFile.write(jsonString)
+    jsonFile.close()
 
-# print(rocketchat_rooms['attendance-bot'])
+apiDataMissing = True
+while(apiDataMissing):
+    try:
+        apiDataFile = open("apiInfo.json")
+        apiInfo = json.load(apiDataFile)
+        apiDataMissing = False
+        if(apiInfo['token'] != "" or apiInfo['userId'] != ''):
+            apiSettings = {'token': apiInfo.get("token"), 'user_id': apiInfo.get("userId"), 'domain': apiInfo.get("domain")}
+            api = RocketChatAPI(settings=apiSettings)
+            user = api.get_my_info()
+            apiSettings['username'] = user.get('username')
+            api.settings=apiSettings
+
+            rooms = api.get_im_rooms()
+            for x in rooms:
+                rocketchat_rooms[x['username']] = x['id']
+    except:
+        apiInfo = {
+            "token": "",
+            "userId": "",
+            "domain": "https://digitaldreamforge.chat/"
+        }
+        saveApiData()
+        apiDataMissing = True
+
+#! =========================== CONNECT API ===========================
+#! Description:
+#!      Updates the apiInfo file and refreshes the app with the new
+#!      connection info.
+#! ===================================================================
+def connect_api():
+    apiInfo.update({"token": token.get()})
+    apiInfo.update({"userId": userId.get()})
+    saveApiData()
+    refreshWindow()
+
+#! ===================== CONNECT ROCKET CHAT =========================
+#! Description:
+#!      Creates the subwindow to put in API information.
+#! ===================================================================
+def connect_rocket_chat():
+    apiWindow = customtkinter.CTkToplevel(root_tk)
+    apiWindow.geometry(WINDOW_WIDTH + "x" + WINDOW_HEIGHT)
+    apiWindow.resizable(width=False, height=False)
+    apiWindow.title("Connect to Rocket Chat")
+    apiWindow.iconbitmap(icon)
+
+    apiTitle = customtkinter.CTkLabel(master=apiWindow, text="Conenct to Rocket Chat", text_font=("Roboto Medium", -24))
+    apiTitle.place(relx=0.5, rely=0.1, anchor=tkinter.CENTER)
+
+    apiStepsTitle = customtkinter.CTkLabel(master=apiWindow, text="Instructions:", text_font=("Roboto Medium", -16))
+    apiStepsTitle.place(relx=0.15, rely=0.25, anchor=tkinter.CENTER)
+
+    apiSteps = customtkinter.CTkLabel(master=apiWindow, text="1. Click your profile image in Rocket Chat.\n" +
+                                                             "2. Click the My Account button.\n" +
+                                                             "3. Click the Personal Access Tokens button.\n" +
+                                                             "4. Type in a title of your choice in the text box.\n" +
+                                                             "5. Click the Ignore Two Factor Authentication\n" +
+                                                             "    checkbox so that is is checked.\n" +
+                                                             "6. Click the Add button.\n" +
+                                                             "7. Copy your UserId and paste it to the right.\n" +
+                                                             "8. Copy your Token and past it to the right.\n" + 
+                                                             "9. Click Connect.",
+                                                             justify=tkinter.LEFT)
+    apiSteps.place(relx=0.3, rely=0.5, anchor=tkinter.CENTER)
+
+    global userId
+    userId = customtkinter.CTkEntry(master=apiWindow, placeholder_text="UserId", width=200)
+    userId.place(relx=0.75, rely=0.4, anchor=tkinter.CENTER)
+
+    global token
+    token = customtkinter.CTkEntry(master=apiWindow, placeholder_text="Token", width=200)
+    token.place(relx=0.75, rely=0.5, anchor=tkinter.CENTER)
+
+    submitAPI = customtkinter.CTkButton(master=apiWindow, text="Connect",  command=connect_api)
+    submitAPI.place(relx=0.75, rely=0.6, anchor=tkinter.CENTER)
 
 #! ======================== GLOBAL VARIABLES =========================
 #! Description:
@@ -87,7 +165,10 @@ buttonHorizontalOffset = 0.45
 labelHorizontalOffset = 0.26
 breakHorizontalOffset = 0.22
 
-debug = True
+debug = False
+
+chatroom = "attendance-bot"
+messagingEnabled = True
 
 btnDisabledColor = "#6C6C6C"
 btnColor01 = "#1c94cf"
@@ -124,7 +205,7 @@ while(tempDataMissing):
         tempDataMissing = False
     except:
         saveTempData(False)
-        preferencesMissing = True
+        tempDataMissing = True
 
 #! ====================== PRE-LOAD USER DATA =========================
 #! Description:
@@ -317,7 +398,7 @@ def setTimestamp(set):
     else:
         dayTimeSheet.update({"clockOut": datetime.now().strftime("%I:%M%p")})
         if(debug):
-            dayTimeSheet.update({"clockOut": "09:00PM"})
+            dayTimeSheet.update({"clockOut": "06:00PM"})
         calculateHours()
         setUserDayTime("update")
 
@@ -413,6 +494,8 @@ def clock_in():
     checkDates()
     setTimestamp(0)
     getClockInLabel()
+    if(messagingEnabled):
+        api.send_message('Day Start ' + userData.get('project'), rocketchat_rooms[chatroom])
 
 def lunch_out():
     lunchOut.configure(state=tkinter.DISABLED, fg_color=btnDisabledColor)
@@ -421,6 +504,8 @@ def lunch_out():
     lunchIn.configure(state=tkinter.NORMAL, fg_color=btnColor01)
     setTimestamp(1)
     getLunchOutLabel()
+    if(messagingEnabled):
+        api.send_message('Lunch Start ' + userData.get('project'), rocketchat_rooms[chatroom])
 
 def lunch_in():
     lunchIn.configure(state=tkinter.DISABLED, fg_color=btnDisabledColor)
@@ -428,6 +513,8 @@ def lunch_in():
     clockOut.configure(state=tkinter.NORMAL, fg_color=btnColor01)
     setTimestamp(2)
     getLunchInLabel()
+    if(messagingEnabled):
+        api.send_message('Lunch End ' + userData.get('project'), rocketchat_rooms[chatroom])
 
 def clock_out():
     clockIn.configure(state=tkinter.NORMAL, fg_color=btnColor01)
@@ -436,6 +523,8 @@ def clock_out():
     setTimestamp(3)
     getClockOutLabel()
     checkEndOfPeriod()
+    if(messagingEnabled):
+        api.send_message('Day End ' + userData.get('project'), rocketchat_rooms[chatroom])
 
 def break_out():
     breakOut.configure(state=tkinter.DISABLED, fg_color=btnDisabledColor)
@@ -444,7 +533,8 @@ def break_out():
     lunchIn.configure(state=tkinter.DISABLED, fg_color=btnDisabledColor)
     breakIn.configure(state=tkinter.NORMAL, fg_color=btnColor01)
     saveTempData(True)
-    # api.send_message('Test message', rocketchat_rooms['jordan.mcgillivray'])
+    if(messagingEnabled):
+        api.send_message('Break Start ' + userData.get('project'), rocketchat_rooms[chatroom])
 
 def break_in():
     breakOut.configure(state=tkinter.NORMAL, fg_color=btnColor01)
@@ -453,6 +543,8 @@ def break_in():
     clockOut.configure(state=tkinter.NORMAL, fg_color=btnColor01)
     breakIn.configure(state=tkinter.DISABLED, fg_color=btnDisabledColor)
     saveTempData(False)
+    if(messagingEnabled):
+        api.send_message('Break End ' + userData.get('project'), rocketchat_rooms[chatroom])
 
 #! ======================== END PAY PERIOD ===========================
 #! Description:
@@ -630,6 +722,12 @@ project.insert(0, userData.get("project"))
 initials = customtkinter.CTkEntry(master=root_tk, placeholder_text="Initials", width=200)
 initials.place(relx=xRef, rely=yRef + 0.3, anchor=tkinter.CENTER)
 initials.insert(0, userData.get("initials"))
+
+if(apiInfo['token'] == '' or apiInfo['userId'] == ''):
+    frame = customtkinter.CTkFrame(master=root_tk, width=int(WINDOW_WIDTH), height=int(WINDOW_HEIGHT), corner_radius=0)
+    frame.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
+    connectRC = customtkinter.CTkButton(master=root_tk, text="Connect Rocket Chat", bg_color="#2E2E2E",  command=connect_rocket_chat)
+    connectRC.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
 
 #! ======================== LABELS FOR INPUTS ========================
 #! Current status: Functional
