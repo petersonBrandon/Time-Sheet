@@ -583,7 +583,8 @@ def break_out():
     clockOut.configure(state=tkinter.DISABLED, fg_color=btnDisabledColor)
     lunchIn.configure(state=tkinter.DISABLED, fg_color=btnDisabledColor)
     breakIn.configure(state=tkinter.NORMAL, fg_color=btnColor01)
-    saveTempData(True)
+    tempData.update({'onBreak': True})
+    saveTempData()
     if(messagingEnabled):
         api.send_message('Break Start ' + userData.get('project'), rocketchat_rooms[chatroom])
 
@@ -593,7 +594,8 @@ def break_in():
         lunchOut.configure(state=tkinter.NORMAL, fg_color=btnColor01)
     clockOut.configure(state=tkinter.NORMAL, fg_color=btnColor01)
     breakIn.configure(state=tkinter.DISABLED, fg_color=btnDisabledColor)
-    saveTempData(False)
+    tempData.update({'onBreak': False})
+    saveTempData()
     if(messagingEnabled):
         api.send_message('Break End ' + userData.get('project'), rocketchat_rooms[chatroom])
 
