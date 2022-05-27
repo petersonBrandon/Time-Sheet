@@ -24,6 +24,11 @@
 #?      https://github.com/petersonBrandon/Time-Sheet      
 #?
 #? ========================================================================================                                                                                       
+import pip
+
+# Install script dependencies automatically
+pip.main(["install", "customtkinter"])
+pip.main(["install", "rocket-python"])
 
 import tkinter
 import json
@@ -31,13 +36,9 @@ import os
 import customtkinter
 import calendar
 import subprocess
-import pip
 from datetime import datetime, timedelta
 from rocketchat.api import RocketChatAPI
 
-# Install script dependencies automatically
-pip.main(["install", "customtkinter"])
-pip.main(["install", "rocket-python"])
 
 #! ======================== MAIN WINDOW SETUP ========================
 #! Description:
