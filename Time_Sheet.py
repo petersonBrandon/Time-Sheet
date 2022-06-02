@@ -219,7 +219,6 @@ def connect_rocket_chat():
     settingsWindow.geometry(WINDOW_WIDTH + "x" + WINDOW_HEIGHT)
     settingsWindow.resizable(width=False, height=False)
     settingsWindow.title("Connect to Rocket Chat")
-    # settingsWindow.iconbitmap(icon)
 
     apiTitle = customtkinter.CTkLabel(master=settingsWindow, text="Conenct to Rocket Chat", text_font=("Roboto Medium", -24))
     apiTitle.place(relx=0.5, rely=0.1, anchor=tkinter.CENTER)
@@ -849,7 +848,7 @@ def open_settings():
     global disconnectRCSettings
     
     # Place frame on top of existing window
-    settingsFrame = customtkinter.CTkFrame(master=root_tk, width=int(WINDOW_WIDTH), height=int(WINDOW_HEIGHT), corner_radius=0, fg_color="#1F1F1F")
+    settingsFrame = customtkinter.CTkFrame(master=root_tk, width=int(WINDOW_WIDTH), height=int(WINDOW_HEIGHT), corner_radius=0, fg_color="#212325")
     settingsFrame.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
     
     # Set title
@@ -858,7 +857,7 @@ def open_settings():
     
     # Set the X icon
     exitIcon = tkinter.PhotoImage(file='./public/xIcon.png')
-    settingsExitBtn = customtkinter.CTkButton(master=root_tk, text="", width=35, height=35, fg_color="#1F1F1F", command=close_settings)
+    settingsExitBtn = customtkinter.CTkButton(master=root_tk, text="", width=35, height=35, fg_color="#212325", command=close_settings)
     settingsExitBtn.set_image(exitIcon)
     settingsExitBtn.place(relx=0.94, rely=0.08, anchor=tkinter.CENTER)
 
@@ -893,7 +892,7 @@ def open_settings():
 #!      Puts the settings icon in the top right corner.
 #! ===================================================================
 settingsIcon = tkinter.PhotoImage(file='./public/settingsSmall.png')
-settingsBtn = customtkinter.CTkButton(master=root_tk, text="", width=35, height=35, fg_color="#1F1F1F", command=open_settings)
+settingsBtn = customtkinter.CTkButton(master=root_tk, text="", width=35, height=35, fg_color="#212325", command=open_settings)
 settingsBtn.set_image(settingsIcon)
 settingsBtn.place(relx=0.94, rely=0.08, anchor=tkinter.CENTER)
 
