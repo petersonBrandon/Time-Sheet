@@ -39,12 +39,72 @@ import subprocess
 from datetime import datetime, timedelta
 from rocketchat.api import RocketChatAPI
 
+#! ======================== GLOBAL VARIABLES =========================
+#! Description:
+#!      Global Variables.
+#! ===================================================================
+userDataFile = "userData.json"
+timeDataFile = "timeData.json"
+
+userData = "0"
+noData = True
+newSheet = False
+
+yRef = 0.4
+xRef = 0.2
+
+buttonHorizontalOffset = 0.45
+labelHorizontalOffset = 0.26
+breakHorizontalOffset = 0.22
+
+debug = False
+
+chatroom = "attendance-bot"
+masterMessagingEnabled = False
+
+btnDisabledColor = "#6C6C6C"
+btnColor01 = "#1c94cf"
+
+endPeriodBtnColor = "#D31515"
+endPeriodBtnHoverColor = "#950F0F"
+
+#! ======================== SAVE PREFERENCES =========================
+#! Description:
+#!      Saves all user preferences. (Currently only consists of 
+#!      dark mode preference)
+#! ===================================================================
+preferences = {}
+def savePreferences():
+    jsonString = json.dumps(preferences)
+    jsonFile = open("userPreferences.json", "w")
+    jsonFile.write(jsonString)
+    jsonFile.close()
+
+#! ===================== PULL USER PREFERENCES =======================
+#! Description:
+#!      Get the current user preferences on file. If no file exists,
+#!      create a new file and set the default prefences.
+#! ===================================================================
+preferencesMissing = True
+while(preferencesMissing):
+    try:
+        preferencesFile = open("userPreferences.json")
+        preferences = json.load(preferencesFile)
+        preferencesMissing = False
+    except:
+        preferences = {
+            "messagingEnabled": True
+        }
+        savePreferences()
+        preferencesMissing = True
+
+messagingEnabled = preferences.get('messagingEnabled')
 
 #! ======================== MAIN WINDOW SETUP ========================
 #! Description:
 #!      Sets up over theme and window configuration.
 #! ===================================================================
-customtkinter.set_appearance_mode("light")  # Modes: system (default), light, dark
+customtkinter.set_appearance_mode("dark")  # Modes: system (default), light, dark
 customtkinter.set_default_color_theme("blue")  # Themes: blue (default), dark-blue, green
 
 WINDOW_WIDTH = "600"
@@ -55,8 +115,8 @@ root_tk.geometry(WINDOW_WIDTH + "x" + WINDOW_HEIGHT) # Set window dimenstions
 root_tk.resizable(width=False, height=False) # Prevent window resizing
 root_tk.title("Time Sheet") # Set window title
 
-icon = "public\clock-icon.ico"
-root_tk.iconbitmap(icon)
+# icon = "public\clock-icon.ico"
+# root_tk.iconbitmap(icon)
 
 def refreshWindow():
     root_tk.destroy()
@@ -131,19 +191,19 @@ def connect_rocket_chat():
     apiInfo.update({"token": ""})
     apiInfo.update({"userId": ""})
     saveApiData()
-    apiWindow = customtkinter.CTkToplevel(root_tk)
-    apiWindow.geometry(WINDOW_WIDTH + "x" + WINDOW_HEIGHT)
-    apiWindow.resizable(width=False, height=False)
-    apiWindow.title("Connect to Rocket Chat")
-    apiWindow.iconbitmap(icon)
+    settingsWindow = customtkinter.CTkToplevel(root_tk)
+    settingsWindow.geometry(WINDOW_WIDTH + "x" + WINDOW_HEIGHT)
+    settingsWindow.resizable(width=False, height=False)
+    settingsWindow.title("Connect to Rocket Chat")
+    # settingsWindow.iconbitmap(icon)
 
-    apiTitle = customtkinter.CTkLabel(master=apiWindow, text="Conenct to Rocket Chat", text_font=("Roboto Medium", -24))
+    apiTitle = customtkinter.CTkLabel(master=settingsWindow, text="Conenct to Rocket Chat", text_font=("Roboto Medium", -24))
     apiTitle.place(relx=0.5, rely=0.1, anchor=tkinter.CENTER)
 
-    apiStepsTitle = customtkinter.CTkLabel(master=apiWindow, text="Instructions:", text_font=("Roboto Medium", -16))
+    apiStepsTitle = customtkinter.CTkLabel(master=settingsWindow, text="Instructions:", text_font=("Roboto Medium", -16))
     apiStepsTitle.place(relx=0.15, rely=0.2, anchor=tkinter.CENTER)
 
-    apiSteps = customtkinter.CTkLabel(master=apiWindow, text="1. Click your profile image in Rocket Chat.\n\n" +
+    apiSteps = customtkinter.CTkLabel(master=settingsWindow, text="1. Click your profile image in Rocket Chat.\n\n" +
                                                              "2. Click the My Account button.\n\n" +
                                                              "3. Click the Personal Access Tokens button.\n\n" +
                                                              "4. Type in a title of your choice in the text box.\n\n" +
@@ -157,44 +217,15 @@ def connect_rocket_chat():
     apiSteps.place(relx=0.3, rely=0.6, anchor=tkinter.CENTER)
 
     global userId
-    userId = customtkinter.CTkEntry(master=apiWindow, placeholder_text="UserId", width=200)
+    userId = customtkinter.CTkEntry(master=settingsWindow, placeholder_text="UserId", width=200)
     userId.place(relx=0.75, rely=0.4, anchor=tkinter.CENTER)
 
     global token
-    token = customtkinter.CTkEntry(master=apiWindow, placeholder_text="Token", width=200)
+    token = customtkinter.CTkEntry(master=settingsWindow, placeholder_text="Token", width=200)
     token.place(relx=0.75, rely=0.5, anchor=tkinter.CENTER)
 
-    submitAPI = customtkinter.CTkButton(master=apiWindow, text="Connect",  command=connect_api)
+    submitAPI = customtkinter.CTkButton(master=settingsWindow, text="Connect",  command=connect_api)
     submitAPI.place(relx=0.75, rely=0.6, anchor=tkinter.CENTER)
-
-#! ======================== GLOBAL VARIABLES =========================
-#! Description:
-#!      Global Variables.
-#! ===================================================================
-userDataFile = "userData.json"
-timeDataFile = "timeData.json"
-
-userData = "0"
-noData = True
-newSheet = False
-
-yRef = 0.4
-xRef = 0.2
-
-buttonHorizontalOffset = 0.45
-labelHorizontalOffset = 0.26
-breakHorizontalOffset = 0.22
-
-debug = False
-
-chatroom = "attendance-bot"
-messagingEnabled = True
-
-btnDisabledColor = "#6C6C6C"
-btnColor01 = "#1c94cf"
-
-endPeriodBtnColor = "#D31515"
-endPeriodBtnHoverColor = "#950F0F"
 
 #! ====================== FIND PAY PERIOD START ======================
 #! Description:
@@ -547,7 +578,9 @@ def clock_in():
     setTimestamp(0)
     getClockInLabel()
     if(messagingEnabled):
-        api.send_message('Day Start ' + userData.get('project'), rocketchat_rooms[chatroom])
+        if(masterMessagingEnabled):
+            api.send_message('Day Start ' + userData.get('project'), rocketchat_rooms[chatroom])
+            print("Clock In message Sent.")
 
 def lunch_out():
     lunchOut.configure(state=tkinter.DISABLED, fg_color=btnDisabledColor)
@@ -557,7 +590,9 @@ def lunch_out():
     setTimestamp(1)
     getLunchOutLabel()
     if(messagingEnabled):
-        api.send_message('Lunch Start ' + userData.get('project'), rocketchat_rooms[chatroom])
+        if(masterMessagingEnabled):
+            api.send_message('Lunch Start ' + userData.get('project'), rocketchat_rooms[chatroom])
+            print("Lunch Start message sent.")
 
 def lunch_in():
     lunchIn.configure(state=tkinter.DISABLED, fg_color=btnDisabledColor)
@@ -566,7 +601,9 @@ def lunch_in():
     setTimestamp(2)
     getLunchInLabel()
     if(messagingEnabled):
-        api.send_message('Lunch End ' + userData.get('project'), rocketchat_rooms[chatroom])
+        if(masterMessagingEnabled):
+            api.send_message('Lunch End ' + userData.get('project'), rocketchat_rooms[chatroom])
+            print("Lunch End message sent.")
 
 def clock_out():
     clockIn.configure(state=tkinter.NORMAL, fg_color=btnColor01)
@@ -576,7 +613,9 @@ def clock_out():
     getClockOutLabel()
     checkEndOfPeriod()
     if(messagingEnabled):
-        api.send_message('Day End ' + userData.get('project'), rocketchat_rooms[chatroom])
+        if(masterMessagingEnabled):
+            api.send_message('Day End ' + userData.get('project'), rocketchat_rooms[chatroom])
+            print("Day End message sent.")
 
 def break_out():
     breakOut.configure(state=tkinter.DISABLED, fg_color=btnDisabledColor)
@@ -587,7 +626,9 @@ def break_out():
     tempData.update({'onBreak': True})
     saveTempData()
     if(messagingEnabled):
-        api.send_message('Break Start ' + userData.get('project'), rocketchat_rooms[chatroom])
+        if(masterMessagingEnabled):
+            api.send_message('Break Start ' + userData.get('project'), rocketchat_rooms[chatroom])
+            print("Break Start message sent.")
 
 def break_in():
     breakOut.configure(state=tkinter.NORMAL, fg_color=btnColor01)
@@ -598,7 +639,9 @@ def break_in():
     tempData.update({'onBreak': False})
     saveTempData()
     if(messagingEnabled):
-        api.send_message('Break End ' + userData.get('project'), rocketchat_rooms[chatroom])
+        if(masterMessagingEnabled):
+            api.send_message('Break End ' + userData.get('project'), rocketchat_rooms[chatroom])
+            print("Break End message sent.")
 
 #! ======================== END PAY PERIOD ===========================
 #! Description:
@@ -702,56 +745,6 @@ if(tempData.get("onBreak")):
 
 checkEndOfPeriod()
 
-#! ======================== SAVE PREFERENCES =========================
-#! Description:
-#!      Saves all user preferences. (Currently only consists of 
-#!      dark mode preference)
-#! ===================================================================
-def savePreferences(darkEnabled):
-    defaultData = { 
-        "darkEnabled": darkEnabled
-    }
-    jsonString = json.dumps(defaultData)
-    jsonFile = open("userPreferences.json", "w")
-    jsonFile.write(jsonString)
-    jsonFile.close()
-
-#! ======================== DARK MODE TOGGLE =========================
-#! Description:
-#!      Toggles dark mode on or off.
-#! ===================================================================
-def dark_toggle():
-    if(switch_1.get() == "on"):
-        customtkinter.set_appearance_mode("dark")
-        savePreferences(True)
-    else:
-        customtkinter.set_appearance_mode("light")
-        savePreferences(False)
-
-#* Dark mode switch element
-switch_1 = customtkinter.CTkSwitch(master=root_tk, text="Dark Mode", command=dark_toggle, onvalue="on", offvalue="off")
-switch_1.place(relx=0.15, rely=0.9, anchor=tkinter.CENTER)
-
-#! ===================== PULL USER PREFERENCES =======================
-#! Description:
-#!      Get the current user preferences on file. If no file exists,
-#!      create a new file and set the default prefences.
-#! ===================================================================
-preferences = ""
-preferencesMissing = True
-while(preferencesMissing):
-    try:
-        preferencesFile = open("userPreferences.json")
-        preferences = json.load(preferencesFile)
-        preferencesMissing = False
-    except:
-        savePreferences(True)
-        preferencesMissing = True
-
-if(preferences.get("darkEnabled")):
-    switch_1.select()
-
-
 #! ======================= TEXTBOX ELEMENTS ==========================
 #! Description:
 #!      All the textbox elements displayed on screen.
@@ -777,14 +770,66 @@ initials = customtkinter.CTkEntry(master=root_tk, placeholder_text="Initials", w
 initials.place(relx=xRef, rely=yRef + 0.3, anchor=tkinter.CENTER)
 initials.insert(0, userData.get("initials"))
 
-if(not apiInfo['isLoggedIn']):
+#! ========================= CLOSE SETTINGS ==========================
+#! Description:
+#!      Close the settings window.
+#! ===================================================================
+def close_settings():
+    settingsFrame.destroy()
+    settingsTitle.destroy()
+    settingsExitBtn.destroy()
+
+#! ========================== OPEN SETTINGS ==========================
+#! Description:
+#!      Open the settings window.
+#! ===================================================================
+def open_settings():
+    global settingsFrame
+    global settingsTitle
+    global settingsExitBtn
+    settingsFrame = customtkinter.CTkFrame(master=root_tk, width=int(WINDOW_WIDTH), height=int(WINDOW_HEIGHT), corner_radius=0, fg_color="#1F1F1F")
+    settingsFrame.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
+    settingsTitle = customtkinter.CTkLabel(master=root_tk, text="Settings", text_font=("Roboto Medium", -24))
+    settingsTitle.place(relx=0.5, rely=0.15, anchor=tkinter.CENTER)
+    exitIcon = tkinter.PhotoImage(file='./public/xIcon.png')
+    settingsExitBtn = customtkinter.CTkButton(master=root_tk, text="", width=35, height=35, fg_color="#1F1F1F", command=close_settings)
+    settingsExitBtn.set_image(exitIcon)
+    settingsExitBtn.place(relx=0.94, rely=0.1, anchor=tkinter.CENTER)
+
+#! ===================== SETTINGS ICON ELEMENT =======================
+#! Description:
+#!      Puts the settings icon in the top right corner.
+#! ===================================================================
+settingsIcon = tkinter.PhotoImage(file='./public/settingsSmall.png')
+settingsBtn = customtkinter.CTkButton(master=root_tk, text="", width=35, height=35, fg_color="#1F1F1F", command=open_settings)
+settingsBtn.set_image(settingsIcon)
+settingsBtn.place(relx=0.94, rely=0.1, anchor=tkinter.CENTER)
+
+#! ======================= SKIP API CONNECT ==========================
+#! Description:
+#!      Allows the user to bypass the API connection.
+#! ===================================================================
+def skip_API_connect():
+    preferences.update({"messagingEnabled": False})
+    savePreferences()
+    refreshWindow()
+
+#! ====================== API CONNECT START ==========================
+#! Description:
+#!      Show the API connection page if the user is not connected,
+#!      and the user has not disabled messaging.
+#! ===================================================================
+if(not apiInfo['isLoggedIn'] and messagingEnabled):
     frame = customtkinter.CTkFrame(master=root_tk, width=int(WINDOW_WIDTH), height=int(WINDOW_HEIGHT), corner_radius=0)
     frame.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
     if(not apiInfo['correctCreds']):
         errorMsg = customtkinter.CTkLabel(master=root_tk, text="Error: Token or UserID invalid.\n Please Try again.", bg_color="#2E2E2E", text_color=endPeriodBtnColor, text_font=("Roboto Medium", -15))
         errorMsg.place(relx=0.5, rely=0.4, anchor=tkinter.CENTER)
-    connectRC = customtkinter.CTkButton(master=root_tk, text="Connect Rocket Chat", bg_color="#2E2E2E",  command=connect_rocket_chat)
-    connectRC.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
+    connectRC = customtkinter.CTkButton(master=root_tk, text="Connect Rocket Chat", bg_color="#2E2E2E", width=200, command=connect_rocket_chat)
+    connectRC.place(relx=0.5, rely=0.45, anchor=tkinter.CENTER)
+    exitBtn = customtkinter.CTkButton(master=root_tk, text="Don't Connect", width=200, bg_color="#2E2E2E", fg_color=endPeriodBtnColor, hover_color=endPeriodBtnHoverColor, command=skip_API_connect)
+    exitBtn.place(relx=0.5, rely=0.55, anchor=tkinter.CENTER)
+
 
 #! ======================== LABELS FOR INPUTS ========================
 #! Current status: Functional
