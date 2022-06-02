@@ -36,6 +36,7 @@ import os
 import customtkinter
 import calendar
 import subprocess
+from playsound import playsound
 from datetime import datetime, timedelta
 from rocketchat.api import RocketChatAPI
 
@@ -58,6 +59,8 @@ labelHorizontalOffset = 0.26
 breakHorizontalOffset = 0.22
 
 debug = False
+
+masterNotificationEnabled = True
 
 chatroom = "attendance-bot"
 masterMessagingEnabled = True
@@ -391,8 +394,6 @@ def setUserDayTime(mode):
 #!      Determines hours worked for the day. On friday total hours 
 #!      are counted and overtime is set on the last day.
 #! ===================================================================
-
-# TODO: Capability to change "last day of week" based on user preference.
 def calculateHours():
     setUserDayTime("update")
     todayIn = datetime.strptime(dayTimeSheet.get("clockIn"), "%I:%M%p")
@@ -555,7 +556,6 @@ def checkDates():
 #* App Title
 header = customtkinter.CTkLabel(master=root_tk, text="Time Sheet", text_font=("Roboto Medium", -24))
 header.place(relx=0.5, rely=0.15, anchor=tkinter.CENTER)
-
 
 #! ======================= PUCH CARD LABELS ==========================
 #! Description:
@@ -792,6 +792,19 @@ def toggle_messaging():
         preferences.update({"messagingEnabled": False}) 
     savePreferences()
 
+def playNotification(sound):
+    # TODO: TAKE SELECTED SOUND AND PLAY IT
+    print("Testing")
+
+def notificationCountdown(delay):
+    # TODO: IMPLEMENT TIME DELAY TO PLAY SOUND
+    # TODO: IMPLEMENT INTERUPT TO STOP TIMER
+    print("Testing")
+
+def sound_select():
+    # TODO: IMPLEMENT SOUND SELECTION AND SAVE IT TO PREFERENCES
+    print("Testing")
+
 #! ========================= CLOSE SETTINGS ==========================
 #! Description:
 #!      Close the settings window.
@@ -874,25 +887,6 @@ if(not apiInfo['isLoggedIn'] and preferences["messagingEnabled"]):
     connectRC.place(relx=0.5, rely=0.45, anchor=tkinter.CENTER)
     exitBtn = customtkinter.CTkButton(master=root_tk, text="Don't Connect", width=200, bg_color="#2E2E2E", fg_color=endPeriodBtnColor, hover_color=endPeriodBtnHoverColor, command=skip_API_connect)
     exitBtn.place(relx=0.5, rely=0.55, anchor=tkinter.CENTER)
-
-
-#! ======================== LABELS FOR INPUTS ========================
-#! Current status: Functional
-#! Description:
-#!      Currently is working. If wanting to implement set xInputRef
-#!      to 0.4.
-#! ===================================================================
-# nameLabel = customtkinter.CTkLabel(master=root_tk, text="Name", width=50, text_font=("Roboto Medium", -15))
-# nameLabel.place(relx=0.13, rely=xInputRef, anchor=tkinter.CENTER)
-
-# supervisorLabel = customtkinter.CTkLabel(master=root_tk, text="Supervisor", width=50, text_font=("Roboto Medium", -15))
-# supervisorLabel.place(relx=0.1, rely=xInputRef + 0.1, anchor=tkinter.CENTER)
-
-# projectLabel = customtkinter.CTkLabel(master=root_tk, text="Project", width=50, text_font=("Roboto Medium", -15))
-# projectLabel.place(relx=0.12, rely=xInputRef + 0.2, anchor=tkinter.CENTER)
-
-# initialsLabel = customtkinter.CTkLabel(master=root_tk, text="Initials", width=50, text_font=("Roboto Medium", -15))
-# initialsLabel.place(relx=0.121, rely=xInputRef + 0.3, anchor=tkinter.CENTER)
 
 #! ==================== EXPERIMENTAL TIME DISPLAY ====================
 #! Current status: Partly functional
