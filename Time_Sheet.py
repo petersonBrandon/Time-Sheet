@@ -169,12 +169,29 @@ while(apiDataMissing):
         apiDataMissing = True
         apiIsLoggedIn = False
 
+#! ======================== DISCONNECT API ===========================
+#! Description:
+#!      Removes API user info from files.
+#! ===================================================================
+def disconnect_rocket_chat():
+    apiInfo.update({
+            "token": "",
+            "userId": "",
+            "domain": "https://digitaldreamforge.chat/",
+            "isLoggedIn": False,
+            "correctCreds": True
+        })
+    saveApiData()
+    refreshWindow()
+
 #! =========================== CONNECT API ===========================
 #! Description:
 #!      Updates the apiInfo file and refreshes the app with the new
 #!      connection info.
 #! ===================================================================
 def connect_api():
+    preferences.update({"messagingEnabled": True})
+    savePreferences()
     apiInfo.update({"token": token.get()})
     apiInfo.update({"userId": userId.get()})
     saveApiData()
@@ -784,6 +801,8 @@ def close_settings():
     settingsTitle.destroy()
     settingsExitBtn.destroy()
     toggleMessaging.destroy()
+    connectRCSettings.destroy()
+    disconnectRCSettings.destroy()
 
 #! ========================== OPEN SETTINGS ==========================
 #! Description:
@@ -794,6 +813,8 @@ def open_settings():
     global settingsTitle
     global settingsExitBtn
     global toggleMessaging
+    global connectRCSettings
+    global disconnectRCSettings
     
     settingsFrame = customtkinter.CTkFrame(master=root_tk, width=int(WINDOW_WIDTH), height=int(WINDOW_HEIGHT), corner_radius=0, fg_color="#1F1F1F")
     settingsFrame.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
@@ -807,9 +828,18 @@ def open_settings():
     settingsExitBtn.place(relx=0.94, rely=0.1, anchor=tkinter.CENTER)
 
     toggleMessaging = customtkinter.CTkSwitch(master=root_tk, text="Messaging", command=toggle_messaging, onvalue="on", offvalue="off")
-    toggleMessaging.place(relx=0.5, rely=0.4, anchor=tkinter.CENTER)
+    toggleMessaging.place(relx=0.5, rely=0.3, anchor=tkinter.CENTER)
     if(preferences["messagingEnabled"]):
         toggleMessaging.toggle()
+
+    connectRCSettings = customtkinter.CTkButton(master=root_tk, text="Connect Rocket Chat", width=200, command=connect_rocket_chat)
+    connectRCSettings.place(relx=0.5, rely=0.8, anchor=tkinter.CENTER)
+
+    disconnectRCSettings = customtkinter.CTkButton(master=root_tk, text="Disonnect Rocket Chat", width=200, fg_color=btnDisabledColor, command=disconnect_rocket_chat, state=tkinter.DISABLED)
+    disconnectRCSettings.place(relx=0.5, rely=0.9, anchor=tkinter.CENTER)
+    if(apiInfo["isLoggedIn"]):
+        connectRCSettings.configure(state=tkinter.DISABLED, fg_color=btnDisabledColor)
+        disconnectRCSettings.configure(state=tkinter.NORMAL, fg_color=endPeriodBtnColor, hover_color=endPeriodBtnHoverColor)
 
 #! ===================== SETTINGS ICON ELEMENT =======================
 #! Description:
