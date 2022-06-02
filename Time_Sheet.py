@@ -825,7 +825,7 @@ def open_settings():
     exitIcon = tkinter.PhotoImage(file='./public/xIcon.png')
     settingsExitBtn = customtkinter.CTkButton(master=root_tk, text="", width=35, height=35, fg_color="#1F1F1F", command=close_settings)
     settingsExitBtn.set_image(exitIcon)
-    settingsExitBtn.place(relx=0.94, rely=0.1, anchor=tkinter.CENTER)
+    settingsExitBtn.place(relx=0.94, rely=0.08, anchor=tkinter.CENTER)
 
     toggleMessaging = customtkinter.CTkSwitch(master=root_tk, text="Messaging", command=toggle_messaging, onvalue="on", offvalue="off")
     toggleMessaging.place(relx=0.5, rely=0.3, anchor=tkinter.CENTER)
@@ -848,7 +848,7 @@ def open_settings():
 settingsIcon = tkinter.PhotoImage(file='./public/settingsSmall.png')
 settingsBtn = customtkinter.CTkButton(master=root_tk, text="", width=35, height=35, fg_color="#1F1F1F", command=open_settings)
 settingsBtn.set_image(settingsIcon)
-settingsBtn.place(relx=0.94, rely=0.1, anchor=tkinter.CENTER)
+settingsBtn.place(relx=0.94, rely=0.08, anchor=tkinter.CENTER)
 
 #! ======================= SKIP API CONNECT ==========================
 #! Description:
