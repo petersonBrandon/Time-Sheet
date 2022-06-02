@@ -59,8 +59,7 @@ breakHorizontalOffset = 0.22
 
 debug = False
 
-# chatroom = "attendance-bot"
-chatroom = "jordan.mcgillivray"
+chatroom = "attendance-bot"
 masterMessagingEnabled = True
 
 btnDisabledColor = "#6C6C6C"
