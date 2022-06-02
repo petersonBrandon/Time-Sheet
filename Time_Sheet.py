@@ -113,8 +113,8 @@ root_tk.geometry(WINDOW_WIDTH + "x" + WINDOW_HEIGHT) # Set window dimenstions
 root_tk.resizable(width=False, height=False) # Prevent window resizing
 root_tk.title("Time Sheet") # Set window title
 
-icon = "public\clock-icon.ico"
-root_tk.iconbitmap(icon)
+icon = tkinter.PhotoImage(file='public\clock-icon.png')
+root_tk.iconphoto(True, icon)
 
 def refreshWindow():
     root_tk.destroy()
