@@ -59,8 +59,9 @@ breakHorizontalOffset = 0.22
 
 debug = False
 
-chatroom = "attendance-bot"
-masterMessagingEnabled = False
+# chatroom = "attendance-bot"
+chatroom = "jordan.mcgillivray"
+masterMessagingEnabled = True
 
 btnDisabledColor = "#6C6C6C"
 btnColor01 = "#1c94cf"
@@ -98,8 +99,6 @@ while(preferencesMissing):
         savePreferences()
         preferencesMissing = True
 
-messagingEnabled = preferences.get('messagingEnabled')
-
 #! ======================== MAIN WINDOW SETUP ========================
 #! Description:
 #!      Sets up over theme and window configuration.
@@ -115,8 +114,8 @@ root_tk.geometry(WINDOW_WIDTH + "x" + WINDOW_HEIGHT) # Set window dimenstions
 root_tk.resizable(width=False, height=False) # Prevent window resizing
 root_tk.title("Time Sheet") # Set window title
 
-# icon = "public\clock-icon.ico"
-# root_tk.iconbitmap(icon)
+icon = "public\clock-icon.ico"
+root_tk.iconbitmap(icon)
 
 def refreshWindow():
     root_tk.destroy()
@@ -577,7 +576,7 @@ def clock_in():
     checkDates()
     setTimestamp(0)
     getClockInLabel()
-    if(messagingEnabled):
+    if(preferences["messagingEnabled"]):
         if(masterMessagingEnabled):
             api.send_message('Day Start ' + userData.get('project'), rocketchat_rooms[chatroom])
             print("Clock In message Sent.")
@@ -589,7 +588,7 @@ def lunch_out():
     lunchIn.configure(state=tkinter.NORMAL, fg_color=btnColor01)
     setTimestamp(1)
     getLunchOutLabel()
-    if(messagingEnabled):
+    if(preferences["messagingEnabled"]):
         if(masterMessagingEnabled):
             api.send_message('Lunch Start ' + userData.get('project'), rocketchat_rooms[chatroom])
             print("Lunch Start message sent.")
@@ -600,7 +599,7 @@ def lunch_in():
     clockOut.configure(state=tkinter.NORMAL, fg_color=btnColor01)
     setTimestamp(2)
     getLunchInLabel()
-    if(messagingEnabled):
+    if(preferences["messagingEnabled"]):
         if(masterMessagingEnabled):
             api.send_message('Lunch End ' + userData.get('project'), rocketchat_rooms[chatroom])
             print("Lunch End message sent.")
@@ -612,7 +611,7 @@ def clock_out():
     setTimestamp(3)
     getClockOutLabel()
     checkEndOfPeriod()
-    if(messagingEnabled):
+    if(preferences["messagingEnabled"]):
         if(masterMessagingEnabled):
             api.send_message('Day End ' + userData.get('project'), rocketchat_rooms[chatroom])
             print("Day End message sent.")
@@ -625,7 +624,7 @@ def break_out():
     breakIn.configure(state=tkinter.NORMAL, fg_color=btnColor01)
     tempData.update({'onBreak': True})
     saveTempData()
-    if(messagingEnabled):
+    if(preferences["messagingEnabled"]):
         if(masterMessagingEnabled):
             api.send_message('Break Start ' + userData.get('project'), rocketchat_rooms[chatroom])
             print("Break Start message sent.")
@@ -638,7 +637,7 @@ def break_in():
     breakIn.configure(state=tkinter.DISABLED, fg_color=btnDisabledColor)
     tempData.update({'onBreak': False})
     saveTempData()
-    if(messagingEnabled):
+    if(preferences["messagingEnabled"]):
         if(masterMessagingEnabled):
             api.send_message('Break End ' + userData.get('project'), rocketchat_rooms[chatroom])
             print("Break End message sent.")
@@ -770,6 +769,13 @@ initials = customtkinter.CTkEntry(master=root_tk, placeholder_text="Initials", w
 initials.place(relx=xRef, rely=yRef + 0.3, anchor=tkinter.CENTER)
 initials.insert(0, userData.get("initials"))
 
+def toggle_messaging():
+    if(toggleMessaging.get() == "on"):
+        preferences.update({"messagingEnabled": True}) 
+    else:
+        preferences.update({"messagingEnabled": False}) 
+    savePreferences()
+
 #! ========================= CLOSE SETTINGS ==========================
 #! Description:
 #!      Close the settings window.
@@ -778,6 +784,7 @@ def close_settings():
     settingsFrame.destroy()
     settingsTitle.destroy()
     settingsExitBtn.destroy()
+    toggleMessaging.destroy()
 
 #! ========================== OPEN SETTINGS ==========================
 #! Description:
@@ -787,14 +794,23 @@ def open_settings():
     global settingsFrame
     global settingsTitle
     global settingsExitBtn
+    global toggleMessaging
+    
     settingsFrame = customtkinter.CTkFrame(master=root_tk, width=int(WINDOW_WIDTH), height=int(WINDOW_HEIGHT), corner_radius=0, fg_color="#1F1F1F")
     settingsFrame.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
+    
     settingsTitle = customtkinter.CTkLabel(master=root_tk, text="Settings", text_font=("Roboto Medium", -24))
     settingsTitle.place(relx=0.5, rely=0.15, anchor=tkinter.CENTER)
+    
     exitIcon = tkinter.PhotoImage(file='./public/xIcon.png')
     settingsExitBtn = customtkinter.CTkButton(master=root_tk, text="", width=35, height=35, fg_color="#1F1F1F", command=close_settings)
     settingsExitBtn.set_image(exitIcon)
     settingsExitBtn.place(relx=0.94, rely=0.1, anchor=tkinter.CENTER)
+
+    toggleMessaging = customtkinter.CTkSwitch(master=root_tk, text="Messaging", command=toggle_messaging, onvalue="on", offvalue="off")
+    toggleMessaging.place(relx=0.5, rely=0.4, anchor=tkinter.CENTER)
+    if(preferences["messagingEnabled"]):
+        toggleMessaging.toggle()
 
 #! ===================== SETTINGS ICON ELEMENT =======================
 #! Description:
@@ -819,7 +835,7 @@ def skip_API_connect():
 #!      Show the API connection page if the user is not connected,
 #!      and the user has not disabled messaging.
 #! ===================================================================
-if(not apiInfo['isLoggedIn'] and messagingEnabled):
+if(not apiInfo['isLoggedIn'] and preferences["messagingEnabled"]):
     frame = customtkinter.CTkFrame(master=root_tk, width=int(WINDOW_WIDTH), height=int(WINDOW_HEIGHT), corner_radius=0)
     frame.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
     if(not apiInfo['correctCreds']):
