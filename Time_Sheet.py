@@ -24,11 +24,13 @@
 #?      https://github.com/petersonBrandon/Time-Sheet      
 #?
 #? ========================================================================================                                                                                       
+from doctest import master
 import pip
 
 # Install script dependencies automatically
 pip.main(["install", "customtkinter"])
 pip.main(["install", "rocket-python"])
+pip.main(["install", "playsound"])
 
 import tkinter
 import json
@@ -96,7 +98,8 @@ while(preferencesMissing):
         preferencesMissing = False
     except:
         preferences = {
-            "messagingEnabled": True
+            "messagingEnabled": True,
+            "notificationsEnabled": True
         }
         savePreferences()
         preferencesMissing = True
@@ -108,7 +111,7 @@ while(preferencesMissing):
 customtkinter.set_appearance_mode("dark")  # Modes: system (default), light, dark
 customtkinter.set_default_color_theme("blue")  # Themes: blue (default), dark-blue, green
 
-WINDOW_WIDTH = "600"
+WINDOW_WIDTH = "700"
 WINDOW_HEIGHT = "400"
 
 root_tk = customtkinter.CTk()  # create CTk window like you do with the Tk window
@@ -144,15 +147,18 @@ while(apiDataMissing):
         apiDataMissing = False
         if(apiInfo['token'] != "" or apiInfo['userId'] != ''):
             try:
+                print("Connecting")
                 apiSettings = {'token': apiInfo.get("token"), 'user_id': apiInfo.get("userId"), 'domain': apiInfo.get("domain")}
                 api = RocketChatAPI(settings=apiSettings)
                 user = api.get_my_info()
                 apiSettings['username'] = user.get('username')
                 api.settings=apiSettings
 
-                rooms = api.get_im_rooms()
+                rooms = api.get_im_rooms()               
                 for x in rooms:
-                    rocketchat_rooms[x['username']] = x['id']
+                    for y in x['usernames']:
+                        if(y != apiSettings['username']):
+                            rocketchat_rooms[y] = x['_id']
                 apiInfo.update({"isLoggedIn": True})
                 apiInfo.update({"correctCreds": True})
             except:
@@ -785,11 +791,22 @@ initials = customtkinter.CTkEntry(master=root_tk, placeholder_text="Initials", w
 initials.place(relx=xRef, rely=yRef + 0.3, anchor=tkinter.CENTER)
 initials.insert(0, userData.get("initials"))
 
+#! ======================= TOGGLE MESSAGING ==========================
+#! Description:
+#!      Turn messaging on or off.
+#! ===================================================================
 def toggle_messaging():
     if(toggleMessaging.get() == "on"):
         preferences.update({"messagingEnabled": True}) 
     else:
         preferences.update({"messagingEnabled": False}) 
+    savePreferences()
+
+def toggle_notifications():
+    if(toggleNotifications.get() == "on"):
+        preferences.update({"notificationsEnabled": True}) 
+    else:
+        preferences.update({"notificationsEnabled": False}) 
     savePreferences()
 
 def playNotification(sound):
@@ -814,6 +831,7 @@ def close_settings():
     settingsTitle.destroy()
     settingsExitBtn.destroy()
     toggleMessaging.destroy()
+    toggleNotifications.destroy()
     connectRCSettings.destroy()
     disconnectRCSettings.destroy()
 
@@ -826,28 +844,44 @@ def open_settings():
     global settingsTitle
     global settingsExitBtn
     global toggleMessaging
+    global toggleNotifications
     global connectRCSettings
     global disconnectRCSettings
     
+    # Place frame on top of existing window
     settingsFrame = customtkinter.CTkFrame(master=root_tk, width=int(WINDOW_WIDTH), height=int(WINDOW_HEIGHT), corner_radius=0, fg_color="#1F1F1F")
     settingsFrame.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
     
+    # Set title
     settingsTitle = customtkinter.CTkLabel(master=root_tk, text="Settings", text_font=("Roboto Medium", -24))
     settingsTitle.place(relx=0.5, rely=0.15, anchor=tkinter.CENTER)
     
+    # Set the X icon
     exitIcon = tkinter.PhotoImage(file='./public/xIcon.png')
     settingsExitBtn = customtkinter.CTkButton(master=root_tk, text="", width=35, height=35, fg_color="#1F1F1F", command=close_settings)
     settingsExitBtn.set_image(exitIcon)
     settingsExitBtn.place(relx=0.94, rely=0.08, anchor=tkinter.CENTER)
 
+    # Set the toggle messaging switch
     toggleMessaging = customtkinter.CTkSwitch(master=root_tk, text="Messaging", command=toggle_messaging, onvalue="on", offvalue="off")
     toggleMessaging.place(relx=0.5, rely=0.3, anchor=tkinter.CENTER)
     if(preferences["messagingEnabled"]):
         toggleMessaging.toggle()
 
+    # Set the toggle notification switch
+    toggleNotifications = customtkinter.CTkSwitch(master=root_tk, text="Notifications", command=toggle_notifications, onvalue="on", offvalue="off")
+    toggleNotifications.place(relx=0.5, rely=0.4, anchor=tkinter.CENTER)
+    if(preferences["notificationsEnabled"]):
+        toggleNotifications.toggle()    
+
+    soundSelect = customtkinter.CTkOptionMenu(master=root_tk)
+    soundSelect.place(relx=0.7, rely=0.4, anchor=tkinter.CENTER)
+
+    # Set the Rocket Chat connect button
     connectRCSettings = customtkinter.CTkButton(master=root_tk, text="Connect Rocket Chat", width=200, command=connect_rocket_chat)
     connectRCSettings.place(relx=0.5, rely=0.8, anchor=tkinter.CENTER)
 
+    # Set the Rocket Chat disconnect button
     disconnectRCSettings = customtkinter.CTkButton(master=root_tk, text="Disonnect Rocket Chat", width=200, fg_color=btnDisabledColor, command=disconnect_rocket_chat, state=tkinter.DISABLED)
     disconnectRCSettings.place(relx=0.5, rely=0.9, anchor=tkinter.CENTER)
     if(apiInfo["isLoggedIn"]):
@@ -882,7 +916,7 @@ if(not apiInfo['isLoggedIn'] and preferences["messagingEnabled"]):
     frame.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
     if(not apiInfo['correctCreds']):
         errorMsg = customtkinter.CTkLabel(master=root_tk, text="Error: Token or UserID invalid.\n Please Try again.", bg_color="#2E2E2E", text_color=endPeriodBtnColor, text_font=("Roboto Medium", -15))
-        errorMsg.place(relx=0.5, rely=0.4, anchor=tkinter.CENTER)
+        errorMsg.place(relx=0.5, rely=0.3, anchor=tkinter.CENTER)
     connectRC = customtkinter.CTkButton(master=root_tk, text="Connect Rocket Chat", bg_color="#2E2E2E", width=200, command=connect_rocket_chat)
     connectRC.place(relx=0.5, rely=0.45, anchor=tkinter.CENTER)
     exitBtn = customtkinter.CTkButton(master=root_tk, text="Don't Connect", width=200, bg_color="#2E2E2E", fg_color=endPeriodBtnColor, hover_color=endPeriodBtnHoverColor, command=skip_API_connect)
