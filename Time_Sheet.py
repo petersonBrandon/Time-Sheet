@@ -99,7 +99,8 @@ while(preferencesMissing):
     except:
         preferences = {
             "messagingEnabled": True,
-            "notificationsEnabled": True
+            "notificationsEnabled": True,
+            "notificationSound": "crystal.mp3"
         }
         savePreferences()
         preferencesMissing = True
@@ -817,9 +818,9 @@ def notificationCountdown(delay):
     # TODO: IMPLEMENT INTERUPT TO STOP TIMER
     print("Testing")
 
-def sound_select():
-    # TODO: IMPLEMENT SOUND SELECTION AND SAVE IT TO PREFERENCES
-    print("Testing")
+def sound_select(option):
+    preferences.update({"notificationSound": option})
+    savePreferences()
 
 #! ========================= CLOSE SETTINGS ==========================
 #! Description:
@@ -831,6 +832,7 @@ def close_settings():
     settingsExitBtn.destroy()
     toggleMessaging.destroy()
     toggleNotifications.destroy()
+    soundSelect.destroy()
     connectRCSettings.destroy()
     disconnectRCSettings.destroy()
 
@@ -844,6 +846,7 @@ def open_settings():
     global settingsExitBtn
     global toggleMessaging
     global toggleNotifications
+    global soundSelect
     global connectRCSettings
     global disconnectRCSettings
     
@@ -863,18 +866,27 @@ def open_settings():
 
     # Set the toggle messaging switch
     toggleMessaging = customtkinter.CTkSwitch(master=root_tk, text="Messaging", command=toggle_messaging, onvalue="on", offvalue="off")
-    toggleMessaging.place(relx=0.5, rely=0.3, anchor=tkinter.CENTER)
+    toggleMessaging.place(relx=0.3, rely=0.3, anchor=tkinter.CENTER)
     if(preferences["messagingEnabled"]):
         toggleMessaging.toggle()
 
     # Set the toggle notification switch
     toggleNotifications = customtkinter.CTkSwitch(master=root_tk, text="Notifications", command=toggle_notifications, onvalue="on", offvalue="off")
-    toggleNotifications.place(relx=0.5, rely=0.4, anchor=tkinter.CENTER)
+    toggleNotifications.place(relx=0.3, rely=0.4, anchor=tkinter.CENTER)
     if(preferences["notificationsEnabled"]):
         toggleNotifications.toggle()    
 
-    soundSelect = customtkinter.CTkOptionMenu(master=root_tk)
-    soundSelect.place(relx=0.7, rely=0.4, anchor=tkinter.CENTER)
+    # Notification Sound settings
+    soundOptions = []
+    sounds = os.scandir('public\sounds')
+    for x in sounds:
+        if(x.is_file and x.path.endswith(".mp3")):
+            soundOptions.append(x.name)
+    currentSound = customtkinter.StringVar(value=preferences["notificationSound"])
+    soundSelect = customtkinter.CTkOptionMenu(master=root_tk, values=soundOptions, variable=currentSound, command=sound_select, width=250)
+    soundSelect.place(relx=0.6, rely=0.4, anchor=tkinter.CENTER)
+
+    # TODO: SETUP A PLAY SAMPLE BUTTON
 
     # Set the Rocket Chat connect button
     connectRCSettings = customtkinter.CTkButton(master=root_tk, text="Connect Rocket Chat", width=200, command=connect_rocket_chat)
