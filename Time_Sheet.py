@@ -38,6 +38,7 @@ import os
 import customtkinter
 import calendar
 import subprocess
+from sys import platform
 from playsound import playsound
 from datetime import datetime, timedelta
 from rocketchat.api import RocketChatAPI
@@ -120,7 +121,11 @@ root_tk.geometry(WINDOW_WIDTH + "x" + WINDOW_HEIGHT) # Set window dimenstions
 root_tk.resizable(width=False, height=False) # Prevent window resizing
 root_tk.title("Time Sheet") # Set window title
 
-icon = tkinter.PhotoImage(file='public\clock-icon.png')
+if (platform == "linux" or platform == "linux2" or platform == "darwin"):
+    icon = tkinter.PhotoImage(file='public/clock-icon.png')
+elif (platform == "win32"):
+    icon = tkinter.PhotoImage(file='public\clock-icon.png')
+    
 root_tk.iconphoto(True, icon)
 
 def refreshWindow():
@@ -878,11 +883,16 @@ def open_settings():
 
     # Notification Sound settings
     soundOptions = []
-    sounds = os.scandir('public\sounds')
+
+    if (platform == "linux" or platform == "linux2" or platform == "darwin"):
+        sounds = os.scandir('public/sounds')
+    elif (platform == "win32"):
+        sounds = os.scandir('public\sounds')
     for x in sounds:
         if(x.is_file and x.path.endswith(".mp3")):
             soundOptions.append(x.name)
     currentSound = customtkinter.StringVar(value=preferences["notificationSound"])
+    
     soundSelect = customtkinter.CTkOptionMenu(master=root_tk, values=soundOptions, variable=currentSound, command=sound_select, width=250)
     soundSelect.place(relx=0.6, rely=0.4, anchor=tkinter.CENTER)
 
