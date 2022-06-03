@@ -855,6 +855,7 @@ def notificationCountdown(delay):
 def sound_select(option):
     preferences.update({"notificationSound": option})
     savePreferences()
+    stop_sound()
 
 def play_sound():
     sound = soundSelect.get()
