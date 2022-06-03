@@ -35,6 +35,7 @@ pip.main(["install", "pygame"])
 import tkinter
 import json
 import os
+import time
 import customtkinter
 import calendar
 import subprocess
@@ -848,9 +849,13 @@ def playNotification(sound):
     beginSoundLoop()
 
 def notificationCountdown(delay):
-    # TODO: IMPLEMENT TIME DELAY TO PLAY SOUND
-    # TODO: IMPLEMENT INTERUPT TO STOP TIMER
-    print("Testing")
+    notificationTime = datetime.time + timedelta(minutes=delay) - timedelta(minutes=2)
+    while(datetime.time != notificationTime):
+        if(delay == 15 and not tempData['onBreak'] or delay == 60 and timeSheet['lunchIn'] != ''):
+            stop_sound()
+            break
+    if(datetime.time != notificationTime):
+        playNotification(preferences['notificationSound'])
 
 def sound_select(option):
     preferences.update({"notificationSound": option})
