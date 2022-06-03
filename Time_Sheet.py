@@ -524,7 +524,7 @@ def checkDates():
         timeSpan = currentDate - lastDate
         timeSpan = timeSpan.days
         newDate = datetime.strptime(lastClockedDate, "%m-%d-%Y")
-        for i in range(timeSpan):
+        for i in range(timeSpan - 1):
             newDate += timedelta(days=1)
             day = calendar.day_name[newDate.weekday()]
             if(day != "Saturday" and day != "Sunday"):
