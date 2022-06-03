@@ -30,7 +30,7 @@ import pip
 # Install script dependencies automatically
 pip.main(["install", "customtkinter"])
 pip.main(["install", "rocket-python"])
-pip.main(["install", "playsound"])
+pip.main(["install", "pygame"])
 
 import tkinter
 import json
@@ -38,8 +38,8 @@ import os
 import customtkinter
 import calendar
 import subprocess
+import pygame
 from sys import platform
-from playsound import playsound
 from datetime import datetime, timedelta
 from rocketchat.api import RocketChatAPI
 
@@ -813,10 +813,33 @@ def toggle_notifications():
     else:
         preferences.update({"notificationsEnabled": False}) 
     savePreferences()
+    
+playIcon = tkinter.PhotoImage(file='./public/playIcon.png')
+stopIcon = tkinter.PhotoImage(file='./public/stop.png')
+
+def stop_sound():
+    pygame.mixer.Sound.stop(audio)
+    playSoundBtn.set_image(playIcon)
+    playSoundBtn.configure(command=play_sound)
+    root_tk.update()
+
+def beginSoundLoop():
+    while(pygame.mixer.get_busy()):
+        playSoundBtn.set_image(stopIcon)
+        playSoundBtn.configure(command=stop_sound)
+        root_tk.update()
+    playSoundBtn.set_image(playIcon)
+    playSoundBtn.configure(command=play_sound)
+    root_tk.update()
+
 
 def playNotification(sound):
-    # TODO: TAKE SELECTED SOUND AND PLAY IT
-    print("Testing")
+    soundFile = "./public/sounds/" + sound
+    pygame.mixer.init()
+    global audio
+    audio = pygame.mixer.Sound(soundFile)
+    pygame.mixer.Sound.play(audio)
+    beginSoundLoop()
 
 def notificationCountdown(delay):
     # TODO: IMPLEMENT TIME DELAY TO PLAY SOUND
@@ -826,6 +849,10 @@ def notificationCountdown(delay):
 def sound_select(option):
     preferences.update({"notificationSound": option})
     savePreferences()
+
+def play_sound():
+    sound = soundSelect.get()
+    playNotification(sound)
 
 #! ========================= CLOSE SETTINGS ==========================
 #! Description:
@@ -838,6 +865,7 @@ def close_settings():
     toggleMessaging.destroy()
     toggleNotifications.destroy()
     soundSelect.destroy()
+    playSoundBtn.destroy()
     connectRCSettings.destroy()
     disconnectRCSettings.destroy()
 
@@ -852,6 +880,7 @@ def open_settings():
     global toggleMessaging
     global toggleNotifications
     global soundSelect
+    global playSoundBtn
     global connectRCSettings
     global disconnectRCSettings
     
@@ -896,7 +925,9 @@ def open_settings():
     soundSelect = customtkinter.CTkOptionMenu(master=root_tk, values=soundOptions, variable=currentSound, command=sound_select, width=250)
     soundSelect.place(relx=0.6, rely=0.4, anchor=tkinter.CENTER)
 
-    # TODO: SETUP A PLAY SAMPLE BUTTON
+    playSoundBtn = customtkinter.CTkButton(master=root_tk, text="", width=35, height=35, fg_color="#212325", command=play_sound)
+    playSoundBtn.set_image(playIcon)
+    playSoundBtn.place(relx=0.83, rely=0.4, anchor=tkinter.CENTER)
 
     # Set the Rocket Chat connect button
     connectRCSettings = customtkinter.CTkButton(master=root_tk, text="Connect Rocket Chat", width=200, command=connect_rocket_chat)
