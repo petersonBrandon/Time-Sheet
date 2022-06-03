@@ -807,6 +807,10 @@ def toggle_messaging():
         preferences.update({"messagingEnabled": False}) 
     savePreferences()
 
+#! ==================== TOGGLE NOTIFICATIONS =========================
+#! Description:
+#!      Turn notifications on or off.
+#! ===================================================================
 def toggle_notifications():
     if(toggleNotifications.get() == "on"):
         preferences.update({"notificationsEnabled": True}) 
@@ -814,9 +818,12 @@ def toggle_notifications():
         preferences.update({"notificationsEnabled": False}) 
     savePreferences()
     
+#! ======================== SOUND FUNCTIONS ==========================
+#! Description:
+#!      Handle sound capabilities.
+#! ===================================================================
 playIcon = tkinter.PhotoImage(file='./public/playIcon.png')
 stopIcon = tkinter.PhotoImage(file='./public/stop.png')
-
 def stop_sound():
     pygame.mixer.Sound.stop(audio)
     playSoundBtn.set_image(playIcon)
@@ -831,7 +838,6 @@ def beginSoundLoop():
     playSoundBtn.set_image(playIcon)
     playSoundBtn.configure(command=play_sound)
     root_tk.update()
-
 
 def playNotification(sound):
     soundFile = "./public/sounds/" + sound
