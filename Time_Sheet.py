@@ -40,6 +40,7 @@ import customtkinter
 import calendar
 import subprocess
 import pygame
+import threading
 from sys import platform
 from datetime import datetime, timedelta
 from rocketchat.api import RocketChatAPI
@@ -620,6 +621,9 @@ def lunch_out():
         if(masterMessagingEnabled):
             api.send_message('Lunch Start ' + userData.get('project'), rocketchat_rooms[chatroom])
             print("Lunch Start message sent.")
+    if(preferences['notificationsEnabled']):
+        if(masterNotificationEnabled):
+            notificationCountdown(60)
 
 def lunch_in():
     lunchIn.configure(state=tkinter.DISABLED, fg_color=btnDisabledColor)
@@ -656,6 +660,9 @@ def break_out():
         if(masterMessagingEnabled):
             api.send_message('Break Start ' + userData.get('project'), rocketchat_rooms[chatroom])
             print("Break Start message sent.")
+    if(preferences['notificationsEnabled']):
+        if(masterNotificationEnabled):
+            notificationCountdown(15)
 
 def break_in():
     breakOut.configure(state=tkinter.NORMAL, fg_color=btnColor01)
@@ -840,22 +847,32 @@ def beginSoundLoop():
     playSoundBtn.configure(command=play_sound)
     root_tk.update()
 
-def playNotification(sound):
+def playNotification(sound, sample):
     soundFile = "./public/sounds/" + sound
     pygame.mixer.init()
     global audio
     audio = pygame.mixer.Sound(soundFile)
     pygame.mixer.Sound.play(audio)
-    beginSoundLoop()
+    if(sample):
+        beginSoundLoop()
+
+def kill():
+    print("KILLING APP")
+    root_tk.quit()
+    root_tk.destroy()
 
 def notificationCountdown(delay):
-    notificationTime = datetime.time + timedelta(minutes=delay) - timedelta(minutes=2)
-    while(datetime.time != notificationTime):
-        if(delay == 15 and not tempData['onBreak'] or delay == 60 and timeSheet['lunchIn'] != ''):
-            stop_sound()
+    notificationTime = (datetime.now() + timedelta(minutes=delay)) - timedelta(minutes=2)
+    while(datetime.now() <= notificationTime):
+        print(datetime.now())
+        root_tk.protocol("WM_DELETE_WINDOW", kill)
+        if(delay == 15 and not tempData['onBreak'] or delay == 60 and dayTimeSheet.get("lunchIn") != ''):
+            print("STOPPING")
             break
-    if(datetime.time != notificationTime):
-        playNotification(preferences['notificationSound'])
+        root_tk.update()
+        time.sleep(0.1)
+    if(datetime.now() >= notificationTime):
+        playNotification(preferences['notificationSound'], False)
 
 def sound_select(option):
     preferences.update({"notificationSound": option})
@@ -864,7 +881,7 @@ def sound_select(option):
 
 def play_sound():
     sound = soundSelect.get()
-    playNotification(sound)
+    playNotification(sound, True)
 
 #! ========================= CLOSE SETTINGS ==========================
 #! Description:
