@@ -864,7 +864,6 @@ def kill():
 def notificationCountdown(delay):
     notificationTime = (datetime.now() + timedelta(minutes=delay)) - timedelta(minutes=2)
     while(datetime.now() <= notificationTime):
-        print(datetime.now())
         root_tk.protocol("WM_DELETE_WINDOW", kill)
         if(delay == 15 and not tempData['onBreak'] or delay == 60 and dayTimeSheet.get("lunchIn") != ''):
             print("STOPPING")
