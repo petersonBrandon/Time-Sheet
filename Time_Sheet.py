@@ -40,7 +40,7 @@ import customtkinter
 import calendar
 import subprocess
 import pygame
-import threading
+import timeSheetPages
 from sys import platform
 from datetime import datetime, timedelta
 from rocketchat.api import RocketChatAPI
@@ -63,15 +63,15 @@ buttonHorizontalOffset = 0.45
 labelHorizontalOffset = 0.26
 breakHorizontalOffset = 0.22
 
-debug = False
+debug = True
 
-masterNotificationEnabled = True
+masterNotificationEnabled = False
 
 chatroom = "attendance-bot"
 masterMessagingEnabled = True
 
 btnDisabledColor = "#6C6C6C"
-btnColor01 = "#1c94cf"
+btnColor01 = "#1F6AA5"
 
 endPeriodBtnColor = "#D31515"
 endPeriodBtnHoverColor = "#950F0F"
@@ -444,6 +444,29 @@ def calculateHours():
         overtimeHours = totalHours - 40
         regularHours = float(regularHours) - overtimeHours
 
+    regularDecimal = regularHours % 1
+    overtimeDecimal = overtimeHours % 1
+
+    regularFront = regularHours // 1
+    overtimeFront = overtimeHours // 1
+
+    if(regularDecimal < 0.25):
+        regularDecimal = 0.0
+    elif(regularDecimal >= 0.25 and regularDecimal < 0.75):
+        regularDecimal = 0.5
+    elif(regularDecimal >= 0.75):
+        regularDecimal = 1.0
+
+    if(overtimeDecimal < 0.25):
+        overtimeDecimal = 0.0
+    elif(overtimeDecimal >= 0.25 and overtimeDecimal < 0.75):
+        overtimeDecimal = 0.5
+    elif(overtimeDecimal >= 0.75):
+        overtimeDecimal = 1.0
+
+    regularHours = regularFront + regularDecimal
+    overtimeHours = overtimeFront + overtimeDecimal
+
     if(overtimeHours == 0):
         overtimeHours = ""
     if(regularHours <= 0):
@@ -501,7 +524,7 @@ def setTimestamp(set):
     else:
         dayTimeSheet.update({"clockOut": datetime.now().strftime("%I:%M%p")})
         if(debug):
-            dayTimeSheet.update({"clockOut": "06:00PM"})
+            dayTimeSheet.update({"clockOut": "06:44PM"})
         calculateHours()
         setUserDayTime("update")
 
@@ -677,6 +700,10 @@ def break_in():
             api.send_message('Break End ' + userData.get('project'), rocketchat_rooms[chatroom])
             print("Break End message sent.")
 
+def edit_time():
+    editPage = timeSheetPages.edit_times(root_tk)
+    editPage.createWindow()
+
 #! ======================== END PAY PERIOD ===========================
 #! Description:
 #!      Saves all user data and time stamps into a single file.
@@ -733,6 +760,9 @@ breakIn.place(relx=xRef + buttonHorizontalOffset + breakHorizontalOffset, rely=y
 
 endPeriod = customtkinter.CTkButton(master=root_tk, text="End Pay Peroid", state=tkinter.DISABLED, fg_color=btnDisabledColor, command=end_period)
 endPeriod.place(relx=xRef + buttonHorizontalOffset, rely=yRef + 0.5, anchor=tkinter.CENTER)
+
+editTimes = customtkinter.CTkButton(master=root_tk, text="Edit Timesheet", command=edit_time)
+editTimes.place(relx=xRef + buttonHorizontalOffset + breakHorizontalOffset, rely=yRef + 0.5, anchor=tkinter.CENTER)
 
 #! ======================= BUTTON PRECONFIG ==========================
 #! Description:
